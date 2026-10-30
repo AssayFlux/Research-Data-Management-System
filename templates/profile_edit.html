@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}My profile · {{ app_name }}{% endblock %}
+{% from "_avatar.html" import user_avatar %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>My profile</h1><p>Your public identity across the workspace.</p></div>
+</div>
+
+<div class="grid2">
+  <div class="card" style="text-align:center">
+    <div style="margin:16px 0">{{ user_avatar(current_user, 100, ring=True) }}</div>
+    <p style="font-weight:700;color:var(--text);margin:8px 0 2px">{{ u.display_name or u.username }}</p>
+    <p class="tiny muted" style="margin:0">@{{ u.username }} · {{ u.role }}</p>
+    <div class="form-actions" style="justify-content:center;margin-top:14px">
+      <a class="btn" href="{{ url_for('avatar_picker') }}">Change avatar</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Edit details</h2>
+    <form method="post">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <label>Display name
+        <input name="display_name" value="{{ u.display_name or u.username }}" maxlength="80"
+               placeholder="Full name shown across the app">
+      </label>
+      <label>Email (for password reset)
+        <input name="email" type="email" value="{{ u.email or '' }}" placeholder="you@example.com">
+        <small class="muted">Used only to send you password reset links.</small>
+      </label>
+      <label>Username (read-only)
+        <input value="{{ u.username }}" disabled>
+      </label>
+      <label>Role (read-only)
+        <input value="{{ u.role }}" disabled>
+      </label>
+      <div class="status-list" style="margin-top:14px">
+        <div>Member since <b>{{ u.created_at[:10] if u.created_at else '—' }}</b></div>
+        <div>Last login <b>{{ u.last_login or '—' }}</b></div>
+      </div>
+      <div class="form-actions" style="margin-top:16px">
+        <button class="btn primary">Save profile</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+  <h2>Quick links</h2>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <a class="btn" href="{{ url_for('avatar_picker') }}">🖼 Avatar</a>
+    <a class="btn" href="{{ url_for('profile_password') }}">🔐 Password</a>
+    <a class="btn" href="{{ url_for('two_factor_page') }}">🛡 Two-factor</a>
+    <a class="btn" href="{{ url_for('account_sessions') }}">💻 Sessions</a>
+  </div>
+</div>
+
+{% endblock %}

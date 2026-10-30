@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Export · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>Export</h1><p>Download your research data. Clean PDFs, no copyright marks.</p></div>
+</div>
+
+<div class="card">
+  <h2>Full dataset</h2>
+  <p class="muted">All studies · all participants · all parameters.</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+    <a class="btn primary" href="{{ url_for('export_all', fmt='csv') }}">📄 CSV</a>
+    <a class="btn primary" href="{{ url_for('export_all', fmt='xlsx') }}">📊 Excel (XLSX)</a>
+    <a class="btn primary" href="{{ url_for('export_all', fmt='pdf') }}">📕 PDF</a>
+  </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+  <h2>Per study</h2>
+  <table>
+    <thead><tr><th>Study</th><th>Title</th><th style="text-align:right">Download</th></tr></thead>
+    <tbody>
+      {% for s in studies %}
+      <tr>
+        <td><b>{{ s.study_code }}</b></td>
+        <td>{{ s.title }}</td>
+        <td style="text-align:right">
+          <a href="{{ url_for('export_study', sid=s.id, fmt='csv') }}">CSV</a> ·
+          <a href="{{ url_for('export_study', sid=s.id, fmt='xlsx') }}">XLSX</a> ·
+          <a href="{{ url_for('export_study', sid=s.id, fmt='pdf') }}">PDF</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" class="muted" style="text-align:center;padding:24px">
+        No studies yet.
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card" style="margin-top:12px">
+  <h2>Import CSV</h2>
+  <p class="muted">Bulk-add participants and values from a CSV file.</p>
+  <a class="btn primary" href="{{ url_for('import_page') }}">Go to Import</a>
+</div>
+
+{% endblock %}

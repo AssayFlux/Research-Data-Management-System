@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ p.name }} · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div>
+    <h1>{{ p.name }} <span class="badge info">{{ p.code }}</span></h1>
+    <p>{{ p.category }} · {{ p.subcategory }}</p>
+  </div>
+  <a class="btn" href="{{ url_for('parameter_library_page') }}">← Library</a>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <h2>Specification</h2>
+    <div class="status-list">
+      <div>Data type <b>{{ p.data_type }}</b></div>
+      <div>Unit <b>{{ p.unit or '—' }}</b></div>
+      <div>Reference low <b>{{ p.ref_low if p.ref_low is not none else '—' }}</b></div>
+      <div>Reference high <b>{{ p.ref_high if p.ref_high is not none else '—' }}</b></div>
+      <div>Reference text <b>{{ p.ref_text or '—' }}</b></div>
+      {% if p.choices %}<div>Choices <b>{{ p.choices }}</b></div>{% endif %}
+    </div>
+    <h3 style="margin-top:16px">Tags</h3>
+    <div style="display:flex;gap:4px;flex-wrap:wrap">
+      {% for t in p.tags %}<span class="badge">{{ t }}</span>{% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    {% if installed %}
+    <div class="alert success">Already in your project as
+      <a href="{{ url_for('parameter_edit', pid=installed.id) }}">{{ p.name }}</a>.
+    </div>
+    {% else %}
+    <h2>Install into my project</h2>
+    <p class="muted">Add this parameter so it appears in data collection, formulas and criteria.</p>
+    <a class="btn primary" href="{{ url_for('parameter_library_install', pid=p.id) }}">
+      + Install
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

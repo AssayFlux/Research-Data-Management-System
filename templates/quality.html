@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Data Quality · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>Data Quality</h1><p>{{ n_open }} open issue(s).</p></div>
+  <button class="btn primary" onclick="runScan()">Run scan</button>
+</div>
+
+{% if not rows %}
+<div class="card empty-state">
+  <div class="empty-icon">{{ icon('shield-check', 40, '#cbd5e1', 1.5) }}</div>
+  <h2>No quality issues</h2>
+  <p>Click "Run scan" to check your data against reference ranges.</p>
+  <button class="btn primary" onclick="runScan()">Run scan now</button>
+</div>
+{% else %}
+
+{# ── Desktop table ── #}
+<div class="card table-wrap mobile-hide">
+  <table>
+    <thead><tr><th>Status</th><th>Participant</th><th>Parameter</th>
+      <th>Severity</th><th>Message</th><th>Found</th><th></th></tr></thead>
+    <tbody>
+      {% for q in rows %}
+      <tr id="q-{{ q.id }}">
+        <td>{% if q.resolved %}<span class="badge success">Resolved</span>
+            {% else %}<span class="badge warning">Open</span>{% endif %}</td>
+        <td>{{ q.participant_code or '—' }}</td>
+        <td>{{ q.parameter_name or '—' }}</td>
+        <td><span class="badge">{{ q.severity }}</span></td>
+        <td>{{ q.message }}</td>
+        <td><small>{{ q.created_at }}</small></td>
+        <td>{% if not q.resolved %}<button class="btn sm" onclick="resolve({{ q.id }})">Resolve</button>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# ── Mobile cards ── #}
+<div class="mobile-only">
+  {% for q in rows[:80] %}
+  <div class="m-card" id="qm-{{ q.id }}">
+    <div class="m-card-head">
+      <div style="flex:1;min-width:0">
+        <div class="m-card-code">{{ q.participant_code or '—' }}</div>
+        <div class="m-card-title">{{ q.parameter_name or '—' }}</div>
+      </div>
+      {% if q.resolved %}<span class="badge success">Resolved</span>
+      {% else %}<span class="badge warning">{{ q.severity }}</span>{% endif %}
+    </div>
+    <div class="m-card-message">{{ q.message }}</div>
+    {% if not q.resolved %}
+    <div class="m-card-actions">
+      <button class="m-btn" onclick="resolve({{ q.id }})">✓ Resolve</button>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+{% endif %}
+
+<script>
+const CSRF = "{{ csrf_token() }}";
+async function runScan() {
+  const body = new FormData();
+  body.append("_csrf", CSRF);
+  const r = await fetch("/quality/run", { method: "POST", body });
+  const d = await r.json();
+  alert(`Scan complete. ${d.issues} issue(s).`);
+  location.reload();
+}
+async function resolve(qid) {
+  const body = new FormData();
+  body.append("_csrf", CSRF);
+  await fetch(`/quality/${qid}/resolve`, { method: "POST", body });
+  const row = document.getElementById("q-" + qid);
+  if (row) row.style.opacity = "0.4";
+  const row2 = document.getElementById("qm-" + qid);
+  if (row2) row2.style.opacity = "0.4";
+  setTimeout(() => location.reload(), 300);
+}
+</script>
+{% endblock %}

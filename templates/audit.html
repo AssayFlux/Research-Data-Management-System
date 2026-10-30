@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Audit log · {{ app_name }}{% endblock %}
+{% from "_avatar.html" import user_avatar %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>Audit Log</h1><p>Trace important actions across the workspace.</p></div>
+</div>
+
+<form class="card" method="get" style="display:flex;gap:8px;align-items:end;margin-bottom:12px">
+  <label style="margin:0;flex:1">Filter by action
+    <select name="action">
+      <option value="">All actions</option>
+      {% for a in actions %}
+      <option value="{{ a }}" {% if action_filter == a %}selected{% endif %}>{{ a }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button class="btn primary">Filter</button>
+  {% if action_filter %}<a class="btn" href="{{ url_for('audit_page') }}">Clear</a>{% endif %}
+</form>
+
+<div class="card table-wrap audit-wrap">
+  <table>
+    <thead>
+      <tr><th>Time</th><th>User</th><th>Action</th><th>Target</th><th>Details</th><th class="hide-sm">IP</th></tr>
+    </thead>
+    <tbody>
+      {% for a in rows %}
+      <tr>
+        <td class="a-time">{{ a.created_at }}</td>
+        <td>
+          {% if a.username %}
+            <div style="display:flex;align-items:center;gap:8px">
+              {{ user_avatar({'username': a.username, 'avatar_type': a.avatar_type, 'avatar_value': a.avatar_value, 'avatar_style': a.avatar_style}, 24) }}
+              <span>{{ a.username }}</span>
+            </div>
+          {% else %}System{% endif %}
+        </td>
+        <td><span class="badge">{{ a.action }}</span></td>
+        <td class="a-target">{{ a.target_type }} {{ a.target_id }}</td>
+        <td class="a-details" title="{{ a.details }}">{{ a.details or '—' }}</td>
+        <td class="hide-sm a-ip">{{ a.ip }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="muted" style="text-align:center;padding:28px">No audit entries yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

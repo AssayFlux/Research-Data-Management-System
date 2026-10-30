@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Data entry · {{ p.participant_code }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>Data entry</h1>
+    <p>{{ p.study_code }} · <b>{{ p.participant_code }}</b></p>
+  </div>
+  <a class="btn" href="{{ url_for('participant_detail', pid=p.id) }}">← Back</a>
+</div>
+
+{% if not grouped %}
+<div class="card">
+  <p class="muted">No active parameters yet. Create parameters first.</p>
+  <a class="btn primary" href="{{ url_for('parameter_new') }}">+ Add parameter</a>
+</div>
+{% else %}
+
+<form method="post" action="{{ url_for('data_save') }}" class="card">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <input type="hidden" name="participant_id" value="{{ p.id }}">
+
+  <div class="form-grid">
+    <label>Visit date
+      <input type="date" name="visit_date" value="{{ now.strftime('%Y-%m-%d') }}">
+    </label>
+  </div>
+
+  {% for cat, items in grouped %}
+  <hr style="margin:24px 0 8px">
+  <h2 style="margin-bottom:12px">{{ cat }}</h2>
+
+  <div class="param-grid">
+    {% for p2 in items %}
+    <label>
+      <span>
+        {{ p2.name }}
+        {% if p2.required %}<i style="color:var(--danger)">*</i>{% endif %}
+      </span>
+      <small class="muted">
+        {{ p2.code }}{% if p2.unit %} · {{ p2.unit }}{% endif %}
+        {% if p2.ref_text %} · {{ p2.ref_text }}
+        {% elif p2.ref_low is not none or p2.ref_high is not none %}
+          · Ref {{ p2.ref_low if p2.ref_low is not none else '' }}–{{ p2.ref_high if p2.ref_high is not none else '' }}
+        {% endif %}
+      </small>
+
+      {% if p2.data_type == 'Choice' %}
+      <select name="p_{{ p2.id }}">
+        <option value="">—</option>
+        {% for c in (p2.choices or '').split(',') %}
+          {% if c.strip() %}<option value="{{ c.strip() }}">{{ c.strip() }}</option>{% endif %}
+        {% endfor %}
+      </select>
+      {% elif p2.data_type in ('Yes/No','Boolean') %}
+      <select name="p_{{ p2.id }}">
+        <option value="">—</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+      {% elif p2.data_type == 'Long text' %}
+      <textarea name="p_{{ p2.id }}"></textarea>
+      {% elif p2.data_type == 'Date' %}
+      <input type="date" name="p_{{ p2.id }}">
+      {% elif p2.data_type == 'Integer' %}
+      <input type="number" step="1" name="p_{{ p2.id }}"
+             {% if p2.min_value is not none %}min="{{ p2.min_value }}"{% endif %}
+             {% if p2.max_value is not none %}max="{{ p2.max_value }}"{% endif %}>
+      {% elif p2.data_type == 'Decimal' %}
+      <input type="number" step="any" name="p_{{ p2.id }}"
+             {% if p2.min_value is not none %}min="{{ p2.min_value }}"{% endif %}
+             {% if p2.max_value is not none %}max="{{ p2.max_value }}"{% endif %}>
+      {% else %}
+      <input type="text" name="p_{{ p2.id }}">
+      {% endif %}
+    </label>
+    {% endfor %}
+  </div>
+  {% endfor %}
+
+  <div class="form-actions" style="margin-top:20px">
+    <a class="btn" href="{{ url_for('participant_detail', pid=p.id) }}">Cancel</a>
+    <button class="btn primary">Save record</button>
+  </div>
+</form>
+
+{% endif %}
+
+{% endblock %}

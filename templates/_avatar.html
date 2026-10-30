@@ -1,0 +1,60 @@
+{# user_avatar(user, size=32, ring=False) ── renders any avatar type #}
+{% macro user_avatar(u, size=32, ring=False) %}
+{% set s = size|int %}
+{% set border = '2px solid #a7f3d0' if ring else '1px solid #e2e8f0' %}
+{% if u.avatar_type == 'upload' and u.avatar_value %}
+  <img src="{{ url_for('avatar_file', fname=u.avatar_value) }}" alt=""
+       style="width:{{ s }}px;height:{{ s }}px;border-radius:50%;object-fit:cover;border:{{ border }};display:inline-block;vertical-align:middle">
+{% elif u.avatar_type == 'dicebear' and u.avatar_style %}
+  <img src="https://api.dicebear.com/7.x/{{ u.avatar_style }}/svg?seed={{ u.avatar_value or u.username }}"
+       alt=""
+       style="width:{{ s }}px;height:{{ s }}px;border-radius:50%;object-fit:cover;border:{{ border }};display:inline-block;vertical-align:middle">
+{% elif u.avatar_type == 'gif' and u.avatar_value %}
+  <img src="{{ u.avatar_value }}" alt=""
+       style="width:{{ s }}px;height:{{ s }}px;border-radius:50%;object-fit:cover;border:{{ border }};display:inline-block;vertical-align:middle">
+{% elif u.avatar_type == 'emoji' and u.avatar_value %}
+  <span style="display:inline-grid;place-items:center;width:{{ s }}px;height:{{ s }}px;
+               border-radius:50%;background:#ecfdf5;border:{{ border }};
+               font-size:{{ (s * 0.6)|int }}px;line-height:1;
+               vertical-align:middle">{{ u.avatar_value }}</span>
+{% else %}
+  <span style="display:inline-grid;place-items:center;width:{{ s }}px;height:{{ s }}px;
+               border-radius:50%;background:var(--primary);color:#fff;
+               font-weight:700;font-size:{{ (s * 0.45)|int }}px;
+               vertical-align:middle;border:{{ border }}">{{ u.username[0]|upper }}</span>
+{% endif %}
+{% endmacro %}
+
+{# site_logo() ── brand mark used in sidebar/header #}
+{% macro site_logo(settings, size=30) %}
+{% set s = size|int %}
+{% set logo_url = settings.get('brand_logo_url', '') or '' %}
+{% set mark_type = settings.get('brand_mark_type', 'emoji') or 'emoji' %}
+{% set mark_value = settings.get('brand_mark_value', '✚') or '✚' %}
+
+{% if logo_url and logo_url.strip() %}
+  {# Uploaded or external logo image #}
+  <img src="{{ logo_url|safe }}" alt="Logo"
+       onerror="this.onerror=null;this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline-grid'"
+       style="max-width:{{ s }}px;max-height:{{ s }}px;width:auto;height:auto;object-fit:contain;border-radius:8px;background:#fff;display:inline-block;vertical-align:middle">
+  {# Fallback emoji shown if image fails to load #}
+  <span class="brandmark" style="display:none;width:{{ s }}px;height:{{ s }}px;
+        font-size:{{ (s * 0.5)|int }}px">{{ mark_value }}</span>
+
+{% elif mark_type == 'image' and mark_value and mark_value.strip() %}
+  {# Image URL from brand mark field #}
+  <img src="{{ mark_value|safe }}" alt="Logo"
+       onerror="this.onerror=null;this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline-grid'"
+       style="max-width:{{ s }}px;max-height:{{ s }}px;width:auto;height:auto;object-fit:contain;border-radius:8px;background:#fff;display:inline-block;vertical-align:middle">
+  <span class="brandmark" style="display:none;width:{{ s }}px;height:{{ s }}px;
+        font-size:{{ (s * 0.5)|int }}px">✚</span>
+
+{% else %}
+  {# Emoji / text mark #}
+  <span class="brandmark" style="width:{{ s }}px;height:{{ s }}px;
+        font-size:{{ (s * 0.5)|int }}px;display:inline-grid;place-items:center;
+        border-radius:9px;background:var(--primary);color:#fff;font-weight:800">
+    {{ mark_value }}
+  </span>
+{% endif %}
+{% endmacro %}

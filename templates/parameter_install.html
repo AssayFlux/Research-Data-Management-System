@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Install {{ p.name }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Install: {{ p.name }}</h1><p>{{ p.category }} · {{ p.code }}</p></div>
+  <a class="btn" href="{{ url_for('parameter_library_detail', pid=p.id) }}">← Back</a>
+</div>
+<form class="card narrow" method="post">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <label>Group (optional)
+    <input name="group_name" list="groups-list" placeholder="e.g. CBC, Lipid, PCOS Panel">
+    <datalist id="groups-list">
+      {% for g in groups %}<option value="{{ g.name }}">{% endfor %}
+    </datalist>
+  </label>
+  <div class="alert info">
+    <b>{{ p.code }}</b> · {{ p.data_type }}{% if p.unit %} · {{ p.unit }}{% endif %}
+    {% if p.ref_text %} · Ref: {{ p.ref_text }}{% endif %}
+  </div>
+  <div class="form-actions">
+    <a class="btn" href="{{ url_for('parameter_library_detail', pid=p.id) }}">Cancel</a>
+    <button class="btn primary">Install parameter</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,232 @@
+/* 200 fonts — 170 Google + 30 system */
+.f-inter { font-family: 'Inter', system-ui, sans-serif; }
+.f-roboto { font-family: 'Roboto', system-ui, sans-serif; }
+.f-open-sans { font-family: 'Open Sans', system-ui, sans-serif; }
+.f-lato { font-family: 'Lato', system-ui, sans-serif; }
+.f-montserrat { font-family: 'Montserrat', system-ui, sans-serif; }
+.f-poppins { font-family: 'Poppins', system-ui, sans-serif; }
+.f-nunito { font-family: 'Nunito', system-ui, sans-serif; }
+.f-source-sans-pro { font-family: 'Source Sans Pro', system-ui, sans-serif; }
+.f-raleway { font-family: 'Raleway', system-ui, sans-serif; }
+.f-work-sans { font-family: 'Work Sans', system-ui, sans-serif; }
+.f-barlow { font-family: 'Barlow', system-ui, sans-serif; }
+.f-manrope { font-family: 'Manrope', system-ui, sans-serif; }
+.f-dm-sans { font-family: 'DM Sans', system-ui, sans-serif; }
+.f-rubik { font-family: 'Rubik', system-ui, sans-serif; }
+.f-karla { font-family: 'Karla', system-ui, sans-serif; }
+.f-jost { font-family: 'Jost', system-ui, sans-serif; }
+.f-space-grotesk { font-family: 'Space Grotesk', system-ui, sans-serif; }
+.f-outfit { font-family: 'Outfit', system-ui, sans-serif; }
+.f-plus-jakarta-sans { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+.f-urbanist { font-family: 'Urbanist', system-ui, sans-serif; }
+.f-archivo { font-family: 'Archivo', system-ui, sans-serif; }
+.f-figtree { font-family: 'Figtree', system-ui, sans-serif; }
+.f-sora { font-family: 'Sora', system-ui, sans-serif; }
+.f-epilogue { font-family: 'Epilogue', system-ui, sans-serif; }
+.f-be-vietnam-pro { font-family: 'Be Vietnam Pro', system-ui, sans-serif; }
+.f-cabin { font-family: 'Cabin', system-ui, sans-serif; }
+.f-titillium-web { font-family: 'Titillium Web', system-ui, sans-serif; }
+.f-exo-2 { font-family: 'Exo 2', system-ui, sans-serif; }
+.f-mulish { font-family: 'Mulish', system-ui, sans-serif; }
+.f-heebo { font-family: 'Heebo', system-ui, sans-serif; }
+.f-asap { font-family: 'Asap', system-ui, sans-serif; }
+.f-assistant { font-family: 'Assistant', system-ui, sans-serif; }
+.f-kumbh-sans { font-family: 'Kumbh Sans', system-ui, sans-serif; }
+.f-public-sans { font-family: 'Public Sans', system-ui, sans-serif; }
+.f-red-hat-display { font-family: 'Red Hat Display', system-ui, sans-serif; }
+.f-signika { font-family: 'Signika', system-ui, sans-serif; }
+.f-hind { font-family: 'Hind', system-ui, sans-serif; }
+.f-overpass { font-family: 'Overpass', system-ui, sans-serif; }
+.f-catamaran { font-family: 'Catamaran', system-ui, sans-serif; }
+.f-barlow-condensed { font-family: 'Barlow Condensed', system-ui, sans-serif; }
+.f-teko { font-family: 'Teko', system-ui, sans-serif; }
+.f-chivo { font-family: 'Chivo', system-ui, sans-serif; }
+.f-yantramanav { font-family: 'Yantramanav', system-ui, sans-serif; }
+.f-maven-pro { font-family: 'Maven Pro', system-ui, sans-serif; }
+.f-nanum-gothic { font-family: 'Nanum Gothic', system-ui, sans-serif; }
+.f-arimo { font-family: 'Arimo', system-ui, sans-serif; }
+.f-dosis { font-family: 'Dosis', system-ui, sans-serif; }
+.f-quicksand { font-family: 'Quicksand', system-ui, sans-serif; }
+.f-comfortaa { font-family: 'Comfortaa', system-ui, sans-serif; }
+.f-baloo-2 { font-family: 'Baloo 2', system-ui, sans-serif; }
+.f-fredoka { font-family: 'Fredoka', system-ui, sans-serif; }
+.f-varela-round { font-family: 'Varela Round', system-ui, sans-serif; }
+.f-josefin-sans { font-family: 'Josefin Sans', system-ui, sans-serif; }
+.f-questrial { font-family: 'Questrial', system-ui, sans-serif; }
+.f-didact-gothic { font-family: 'Didact Gothic', system-ui, sans-serif; }
+.f-muli { font-family: 'Muli', system-ui, sans-serif; }
+.f-alegreya-sans { font-family: 'Alegreya Sans', system-ui, sans-serif; }
+.f-advent-pro { font-family: 'Advent Pro', system-ui, sans-serif; }
+.f-ubuntu { font-family: 'Ubuntu', system-ui, sans-serif; }
+.f-pt-sans { font-family: 'PT Sans', system-ui, sans-serif; }
+.f-fira-sans { font-family: 'Fira Sans', system-ui, sans-serif; }
+.f-playfair-display { font-family: 'Playfair Display', system-ui, sans-serif; }
+.f-merriweather { font-family: 'Merriweather', system-ui, sans-serif; }
+.f-lora { font-family: 'Lora', system-ui, sans-serif; }
+.f-pt-serif { font-family: 'PT Serif', system-ui, sans-serif; }
+.f-noto-serif { font-family: 'Noto Serif', system-ui, sans-serif; }
+.f-source-serif-pro { font-family: 'Source Serif Pro', system-ui, sans-serif; }
+.f-crimson-text { font-family: 'Crimson Text', system-ui, sans-serif; }
+.f-eb-garamond { font-family: 'EB Garamond', system-ui, sans-serif; }
+.f-cormorant-garamond { font-family: 'Cormorant Garamond', system-ui, sans-serif; }
+.f-libre-baskerville { font-family: 'Libre Baskerville', system-ui, sans-serif; }
+.f-bitter { font-family: 'Bitter', system-ui, sans-serif; }
+.f-arvo { font-family: 'Arvo', system-ui, sans-serif; }
+.f-domine { font-family: 'Domine', system-ui, sans-serif; }
+.f-fraunces { font-family: 'Fraunces', system-ui, sans-serif; }
+.f-dm-serif-display { font-family: 'DM Serif Display', system-ui, sans-serif; }
+.f-cormorant { font-family: 'Cormorant', system-ui, sans-serif; }
+.f-cardo { font-family: 'Cardo', system-ui, sans-serif; }
+.f-neuton { font-family: 'Neuton', system-ui, sans-serif; }
+.f-spectral { font-family: 'Spectral', system-ui, sans-serif; }
+.f-vollkorn { font-family: 'Vollkorn', system-ui, sans-serif; }
+.f-alegreya { font-family: 'Alegreya', system-ui, sans-serif; }
+.f-gelasio { font-family: 'Gelasio', system-ui, sans-serif; }
+.f-crimson-pro { font-family: 'Crimson Pro', system-ui, sans-serif; }
+.f-zilla-slab { font-family: 'Zilla Slab', system-ui, sans-serif; }
+.f-roboto-slab { font-family: 'Roboto Slab', system-ui, sans-serif; }
+.f-noticia-text { font-family: 'Noticia Text', system-ui, sans-serif; }
+.f-abril-fatface { font-family: 'Abril Fatface', system-ui, sans-serif; }
+.f-yeseva-one { font-family: 'Yeseva One', system-ui, sans-serif; }
+.f-old-standard-tt { font-family: 'Old Standard TT', system-ui, sans-serif; }
+.f-gentium-book-plus { font-family: 'Gentium Book Plus', system-ui, sans-serif; }
+.f-frank-ruhl-libre { font-family: 'Frank Ruhl Libre', system-ui, sans-serif; }
+.f-literata { font-family: 'Literata', system-ui, sans-serif; }
+.f-newsreader { font-family: 'Newsreader', system-ui, sans-serif; }
+.f-bodoni-moda { font-family: 'Bodoni Moda', system-ui, sans-serif; }
+.f-prata { font-family: 'Prata', system-ui, sans-serif; }
+.f-rozha-one { font-family: 'Rozha One', system-ui, sans-serif; }
+.f-marcellus { font-family: 'Marcellus', system-ui, sans-serif; }
+.f-cinzel { font-family: 'Cinzel', system-ui, sans-serif; }
+.f-italiana { font-family: 'Italiana', system-ui, sans-serif; }
+.f-julius-sans-one { font-family: 'Julius Sans One', system-ui, sans-serif; }
+.f-philosopher { font-family: 'Philosopher', system-ui, sans-serif; }
+.f-tenor-sans { font-family: 'Tenor Sans', system-ui, sans-serif; }
+.f-quattrocento { font-family: 'Quattrocento', system-ui, sans-serif; }
+.f-gilda-display { font-family: 'Gilda Display', system-ui, sans-serif; }
+.f-trirong { font-family: 'Trirong', system-ui, sans-serif; }
+.f-tinos { font-family: 'Tinos', system-ui, sans-serif; }
+.f-alice { font-family: 'Alice', system-ui, sans-serif; }
+.f-biorhyme { font-family: 'BioRhyme', system-ui, sans-serif; }
+.f-bree-serif { font-family: 'Bree Serif', system-ui, sans-serif; }
+.f-jetbrains-mono { font-family: 'JetBrains Mono', system-ui, sans-serif; }
+.f-fira-code { font-family: 'Fira Code', system-ui, sans-serif; }
+.f-source-code-pro { font-family: 'Source Code Pro', system-ui, sans-serif; }
+.f-ibm-plex-mono { font-family: 'IBM Plex Mono', system-ui, sans-serif; }
+.f-inconsolata { font-family: 'Inconsolata', system-ui, sans-serif; }
+.f-roboto-mono { font-family: 'Roboto Mono', system-ui, sans-serif; }
+.f-space-mono { font-family: 'Space Mono', system-ui, sans-serif; }
+.f-ubuntu-mono { font-family: 'Ubuntu Mono', system-ui, sans-serif; }
+.f-courier-prime { font-family: 'Courier Prime', system-ui, sans-serif; }
+.f-anonymous-pro { font-family: 'Anonymous Pro', system-ui, sans-serif; }
+.f-cousine { font-family: 'Cousine', system-ui, sans-serif; }
+.f-oxygen-mono { font-family: 'Oxygen Mono', system-ui, sans-serif; }
+.f-share-tech-mono { font-family: 'Share Tech Mono', system-ui, sans-serif; }
+.f-pt-mono { font-family: 'PT Mono', system-ui, sans-serif; }
+.f-ibm-plex-serif { font-family: 'IBM Plex Serif', system-ui, sans-serif; }
+.f-noto-sans-mono { font-family: 'Noto Sans Mono', system-ui, sans-serif; }
+.f-dm-mono { font-family: 'DM Mono', system-ui, sans-serif; }
+.f-red-hat-mono { font-family: 'Red Hat Mono', system-ui, sans-serif; }
+.f-fragment-mono { font-family: 'Fragment Mono', system-ui, sans-serif; }
+.f-martian-mono { font-family: 'Martian Mono', system-ui, sans-serif; }
+.f-bebas-neue { font-family: 'Bebas Neue', system-ui, sans-serif; }
+.f-anton { font-family: 'Anton', system-ui, sans-serif; }
+.f-oswald { font-family: 'Oswald', system-ui, sans-serif; }
+.f-archivo-black { font-family: 'Archivo Black', system-ui, sans-serif; }
+.f-alfa-slab-one { font-family: 'Alfa Slab One', system-ui, sans-serif; }
+.f-lobster { font-family: 'Lobster', system-ui, sans-serif; }
+.f-pacifico { font-family: 'Pacifico', system-ui, sans-serif; }
+.f-dancing-script { font-family: 'Dancing Script', system-ui, sans-serif; }
+.f-great-vibes { font-family: 'Great Vibes', system-ui, sans-serif; }
+.f-satisfy { font-family: 'Satisfy', system-ui, sans-serif; }
+.f-caveat { font-family: 'Caveat', system-ui, sans-serif; }
+.f-shadows-into-light { font-family: 'Shadows Into Light', system-ui, sans-serif; }
+.f-indie-flower { font-family: 'Indie Flower', system-ui, sans-serif; }
+.f-amatic-sc { font-family: 'Amatic SC', system-ui, sans-serif; }
+.f-permanent-marker { font-family: 'Permanent Marker', system-ui, sans-serif; }
+.f-rock-salt { font-family: 'Rock Salt', system-ui, sans-serif; }
+.f-kalam { font-family: 'Kalam', system-ui, sans-serif; }
+.f-handlee { font-family: 'Handlee', system-ui, sans-serif; }
+.f-patrick-hand { font-family: 'Patrick Hand', system-ui, sans-serif; }
+.f-cookie { font-family: 'Cookie', system-ui, sans-serif; }
+.f-allura { font-family: 'Allura', system-ui, sans-serif; }
+.f-tangerine { font-family: 'Tangerine', system-ui, sans-serif; }
+.f-parisienne { font-family: 'Parisienne', system-ui, sans-serif; }
+.f-pinyon-script { font-family: 'Pinyon Script', system-ui, sans-serif; }
+.f-sacramento { font-family: 'Sacramento', system-ui, sans-serif; }
+.f-courgette { font-family: 'Courgette', system-ui, sans-serif; }
+.f-marck-script { font-family: 'Marck Script', system-ui, sans-serif; }
+.f-neucha { font-family: 'Neucha', system-ui, sans-serif; }
+.f-bungee { font-family: 'Bungee', system-ui, sans-serif; }
+.f-monoton { font-family: 'Monoton', system-ui, sans-serif; }
+.f-righteous { font-family: 'Righteous', system-ui, sans-serif; }
+.f-bowlby-one { font-family: 'Bowlby One', system-ui, sans-serif; }
+.f-passion-one { font-family: 'Passion One', system-ui, sans-serif; }
+.f-russo-one { font-family: 'Russo One', system-ui, sans-serif; }
+.f-bangers { font-family: 'Bangers', system-ui, sans-serif; }
+.f-luckiest-guy { font-family: 'Luckiest Guy', system-ui, sans-serif; }
+.f-carter-one { font-family: 'Carter One', system-ui, sans-serif; }
+.f-chewy { font-family: 'Chewy', system-ui, sans-serif; }
+.f-fredoka-one { font-family: 'Fredoka One', system-ui, sans-serif; }
+.f-grandstander { font-family: 'Grandstander', system-ui, sans-serif; }
+.f-comforter { font-family: 'Comforter', system-ui, sans-serif; }
+.f-damion { font-family: 'Damion', system-ui, sans-serif; }
+.f-homemade-apple { font-family: 'Homemade Apple', system-ui, sans-serif; }
+.f-la-belle-aurore { font-family: 'La Belle Aurore', system-ui, sans-serif; }
+.f-nanum-pen-script { font-family: 'Nanum Pen Script', system-ui, sans-serif; }
+.f-nothing-you-could-do { font-family: 'Nothing You Could Do', system-ui, sans-serif; }
+.f-reenie-beanie { font-family: 'Reenie Beanie', system-ui, sans-serif; }
+.f-schoolbell { font-family: 'Schoolbell', system-ui, sans-serif; }
+.f-sriracha { font-family: 'Sriracha', system-ui, sans-serif; }
+.f-sunshiney { font-family: 'Sunshiney', system-ui, sans-serif; }
+.f-swanky-and-moo-moo { font-family: 'Swanky and Moo Moo', system-ui, sans-serif; }
+.f-the-girl-next-door { font-family: 'The Girl Next Door', system-ui, sans-serif; }
+.f-walter-turncoat { font-family: 'Walter Turncoat', system-ui, sans-serif; }
+.f-yellowtail { font-family: 'Yellowtail', system-ui, sans-serif; }
+.f-aladin { font-family: 'Aladin', system-ui, sans-serif; }
+.f-amaranth { font-family: 'Amaranth', system-ui, sans-serif; }
+.f-bubblegum-sans { font-family: 'Bubblegum Sans', system-ui, sans-serif; }
+.f-fredericka-the-great { font-family: 'Fredericka the Great', system-ui, sans-serif; }
+.f-gloria-hallelujah { font-family: 'Gloria Hallelujah', system-ui, sans-serif; }
+.f-kranky { font-family: 'Kranky', system-ui, sans-serif; }
+.f-love-ya-like-a-sister { font-family: 'Love Ya Like A Sister', system-ui, sans-serif; }
+.f-crafty-girls { font-family: 'Crafty Girls', system-ui, sans-serif; }
+.f-mountains-of-christmas { font-family: 'Mountains of Christmas', system-ui, sans-serif; }
+.f-princess-sofia { font-family: 'Princess Sofia', system-ui, sans-serif; }
+.f-ribeye-marrow { font-family: 'Ribeye Marrow', system-ui, sans-serif; }
+.f-slackey { font-family: 'Slackey', system-ui, sans-serif; }
+.f-sniglet { font-family: 'Sniglet', system-ui, sans-serif; }
+.f-spicy-rice { font-family: 'Spicy Rice', system-ui, sans-serif; }
+.f-patrick-hand-sc { font-family: 'Patrick Hand SC', system-ui, sans-serif; }
+.f-merienda { font-family: 'Merienda', system-ui, sans-serif; }
+.f-salsa { font-family: 'Salsa', system-ui, sans-serif; }
+.f-sys01 { font-family: system-ui,sans-serif; }
+.f-sys02 { font-family: ui-sans-serif,system-ui,sans-serif; }
+.f-sys03 { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+.f-sys04 { font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; }
+.f-sys05 { font-family: 'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; }
+.f-sys06 { font-family: Arial,Helvetica,sans-serif; }
+.f-sys07 { font-family: Verdana,Geneva,sans-serif; }
+.f-sys08 { font-family: Tahoma,Geneva,sans-serif; }
+.f-sys09 { font-family: Trebuchet+MS,Helvetica,sans-serif; }
+.f-sys10 { font-family: Georgia,'Times New Roman',serif; }
+.f-sys11 { font-family: 'Times New Roman',Times,serif; }
+.f-sys12 { font-family: Garamond,serif; }
+.f-sys13 { font-family: 'Palatino Linotype','Book Antiqua',Palatino,serif; }
+.f-sys14 { font-family: 'Courier New',Courier,monospace; }
+.f-sys15 { font-family: 'Lucida Console',Monaco,monospace; }
+.f-sys16 { font-family: Consolas,Monaco,'Courier New',monospace; }
+.f-sys17 { font-family: Menlo,Monaco,monospace; }
+.f-sys18 { font-family: 'Roboto',system-ui,sans-serif; }
+.f-sys19 { font-family: 'Noto Sans',sans-serif; }
+.f-sys20 { font-family: 'Noto Serif',serif; }
+.f-sys21 { font-family: 'Droid Sans',sans-serif; }
+.f-sys22 { font-family: 'Droid Serif',serif; }
+.f-sys23 { font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+.f-sys24 { font-family: cursive,system-ui,sans-serif; }
+.f-sys25 { font-family: fantasy,system-ui,sans-serif; }
+.f-sys26 { font-family: monospace,system-ui; }
+.f-sys27 { font-family: serif,Georgia,serif; }
+.f-sys28 { font-family: sans-serif,system-ui; }
+.f-sys29 { font-family: ui-monospace,Menlo,monospace; }
+.f-sys30 { font-family: ui-rounded,system-ui,sans-serif; }

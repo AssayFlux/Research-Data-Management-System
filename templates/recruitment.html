@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Recruitment funnel · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="rf-page">
+
+  <div class="pagehead">
+    <div>
+      <h1>Recruitment funnel</h1>
+      <p>Participant flow from screening to study completion.</p>
+    </div>
+    {% if studies %}
+    <form method="get" class="rf-study-picker">
+      <select name="study_id" onchange="this.form.submit()">
+        {% for s in studies %}
+        <option value="{{ s.id }}" {% if selected == s.id %}selected{% endif %}>
+          {{ s.study_code }} — {{ s.title[:34] }}{% if s.title|length > 34 %}…{% endif %}
+        </option>
+        {% endfor %}
+      </select>
+    </form>
+    {% endif %}
+  </div>
+
+  {% if not studies %}
+  <div class="card empty-state">
+    <div class="empty-icon">{{ icon('bar-chart-3', 40, '#cbd5e1', 1.5) }}</div>
+    <h2>No studies yet</h2>
+    <p>Create a study to start tracking recruitment.</p>
+    <a class="btn primary" href="{{ url_for('study_new') }}">+ Create first study</a>
+  </div>
+
+  {% elif not data %}
+  <div class="card empty-state">
+    <div class="empty-icon">{{ icon('bar-chart-3', 40, '#cbd5e1', 1.5) }}</div>
+    <h2>No data for this study</h2>
+    <p>Add participants to see the funnel.</p>
+    <a class="btn primary" href="{{ url_for('participant_new') }}">+ Add participant</a>
+  </div>
+
+  {% else %}
+
+  {% set c = data.counts %}
+  {% set total = c.screened or 1 %}
+
+  {# ─── Stage cards (5 across) ─── #}
+  <div class="rf-stages">
+    <div class="rf-stage rf-stage-1">
+      <div class="rf-stage-head">
+        <span class="rf-stage-ico">{{ icon('users', 16, '#ffffff', 2) }}</span>
+        <span class="rf-stage-num">{{ c.screened }}</span>
+      </div>
+      <div class="rf-stage-body">
+        <div class="rf-stage-title">Screened</div>
+        <div class="rf-stage-sub">Assessed for eligibility</div>
+      </div>
+      <div class="rf-stage-pct">100%</div>
+    </div>
+
+    <div class="rf-stage rf-stage-2">
+      <div class="rf-stage-head">
+        <span class="rf-stage-ico">{{ icon('check-circle', 16, '#ffffff', 2) }}</span>
+        <span class="rf-stage-num">{{ c.eligible }}</span>
+      </div>
+      <div class="rf-stage-body">
+        <div class="rf-stage-title">Eligible</div>
+        <div class="rf-stage-sub">Met inclusion criteria</div>
+      </div>
+      <div class="rf-stage-pct">{{ (c.eligible / total * 100)|round(1) }}%</div>
+    </div>
+
+    <div class="rf-stage rf-stage-3">
+      <div class="rf-stage-head">
+        <span class="rf-stage-ico">{{ icon('pen-tool', 16, '#ffffff', 2) }}</span>
+        <span class="rf-stage-num">{{ c.consented }}</span>
+      </div>
+      <div class="rf-stage-body">
+        <div class="rf-stage-title">Consented</div>
+        <div class="rf-stage-sub">Signed informed consent</div>
+      </div>
+      <div class="rf-stage-pct">{{ (c.consented / total * 100)|round(1) }}%</div>
+    </div>
+
+    <div class="rf-stage rf-stage-4">
+      <div class="rf-stage-head">
+        <span class="rf-stage-ico">{{ icon('user-check', 16, '#ffffff', 2) }}</span>
+        <span class="rf-stage-num">{{ c.enrolled }}</span>
+      </div>
+      <div class="rf-stage-body">
+        <div class="rf-stage-title">Enrolled</div>
+        <div class="rf-stage-sub">Active in study</div>
+      </div>
+      <div class="rf-stage-pct">{{ (c.enrolled / total * 100)|round(1) }}%</div>
+    </div>
+
+    <div class="rf-stage rf-stage-5">
+      <div class="rf-stage-head">
+        <span class="rf-stage-ico">{{ icon('award', 16, '#ffffff', 2) }}</span>
+        <span class="rf-stage-num">{{ c.completed }}</span>
+      </div>
+      <div class="rf-stage-body">
+        <div class="rf-stage-title">Completed</div>
+        <div class="rf-stage-sub">Finished all visits</div>
+      </div>
+      <div class="rf-stage-pct">{{ (c.completed / total * 100)|round(1) }}%</div>
+    </div>
+  </div>
+
+  {# ─── Group breakdown ─── #}
+  <div class="rf-grid">
+    <div class="rf-card">
+      <div class="rf-card-head">
+        <span class="rf-card-ic" style="background:#ede9fe">{{ icon('target', 18, '#7c3aed', 2) }}</span>
+        <div>
+          <div class="rf-card-title">Study group</div>
+          <div class="rf-card-sub">Auto-classified as Study</div>
+        </div>
+      </div>
+      <div class="rf-card-num" style="color:#7c3aed">{{ c.study }}</div>
+    </div>
+
+    <div class="rf-card">
+      <div class="rf-card-head">
+        <span class="rf-card-ic" style="background:#eff6ff">{{ icon('users', 18, '#2563eb', 2) }}</span>
+        <div>
+          <div class="rf-card-title">Control group</div>
+          <div class="rf-card-sub">Auto-classified as Control</div>
+        </div>
+      </div>
+      <div class="rf-card-num" style="color:#2563eb">{{ c.control }}</div>
+    </div>
+
+    <div class="rf-card">
+      <div class="rf-card-head">
+        <span class="rf-card-ic" style="background:#fef2f2">{{ icon('x-circle', 18, '#dc2626', 2) }}</span>
+        <div>
+          <div class="rf-card-title">Excluded</div>
+          <div class="rf-card-sub">Failed inclusion / met exclusion</div>
+        </div>
+      </div>
+      <div class="rf-card-num" style="color:#dc2626">{{ c.excluded }}</div>
+    </div>
+
+    <div class="rf-card">
+      <div class="rf-card-head">
+        <span class="rf-card-ic" style="background:#fffbeb">{{ icon('alert-circle', 18, '#d97706', 2) }}</span>
+        <div>
+          <div class="rf-card-title">Undetermined</div>
+          <div class="rf-card-sub">Not yet classified</div>
+        </div>
+      </div>
+      <div class="rf-card-num" style="color:#d97706">{{ c.undetermined }}</div>
+    </div>
+  </div>
+
+  {# ─── Target progress ─── #}
+  <div class="card rf-progress">
+    <div class="rf-progress-head">
+      <div>
+        <div class="rf-progress-label">Progress to target</div>
+        <div class="rf-progress-num">{{ c.enrolled }} / {{ data.target }}</div>
+      </div>
+      <div class="rf-progress-pct">{{ data.pct }}%</div>
+    </div>
+    <div class="rf-progress-bar">
+      <div style="width: {{ data.pct if data.pct <= 100 else 100 }}%"></div>
+    </div>
+    <div class="rf-progress-meta">
+      {% if c.withdrawn %}Withdrawn: {{ c.withdrawn }} · {% endif %}
+      {% if c.ineligible %}Ineligible: {{ c.ineligible }}{% endif %}
+    </div>
+  </div>
+
+  {# ─── Monthly recruitment ─── #}
+  {% if data.monthly %}
+  <div class="card">
+    <div class="cardhead"><h2>Monthly recruitment</h2></div>
+    {% set max_n = data.monthly|map(attribute='n')|max %}
+    <div class="rf-monthly">
+      {% for m in data.monthly %}
+      <div class="rf-month-bar">
+        <div class="rf-month-bar-inner" style="height: {{ (m.n / max_n * 80)|round(0)|int }}px"></div>
+        <span class="rf-month-label">{{ m.ym[5:] }}</span>
+        <span class="rf-month-count">{{ m.n }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% endif %}
+</div>
+
+{% endblock %}

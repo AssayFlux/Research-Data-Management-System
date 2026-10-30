@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit study' if row else 'New study' }} · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+<div><h1>{{ 'Edit study' if row else 'New study' }}</h1>
+<p>Study metadata, protocol details and recruitment target.</p></div>
+</div>
+<form class="card form-grid" method="post">
+<input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+<label>Study code<input name="study_code" value="{{ row.study_code if row else '' }}" required></label>
+<label>Title<input name="title" value="{{ row.title if row else '' }}" required></label>
+<label>Principal investigator<input name="pi" value="{{ row.pi if row else '' }}"></label>
+<label>Institution<input name="institution" value="{{ row.institution if row else '' }}"></label>
+<label>Department<input name="department" value="{{ row.department if row else '' }}"></label>
+<label>Protocol no.<input name="protocol_no" value="{{ row.protocol_no if row else '' }}"></label>
+<label>Ethics approval no.<input name="ethics_no" value="{{ row.ethics_no if row else '' }}"></label>
+<label>Status<select name="status">
+{% for s in ['ACTIVE','RECRUITING','PAUSED','COMPLETED'] %}
+<option {% if row and row.status==s %}selected{% endif %}>{{ s }}</option>
+{% endfor %}</select></label>
+<label>Start date<input type="date" name="start_date" value="{{ row.start_date if row else '' }}"></label>
+<label>End date<input type="date" name="end_date" value="{{ row.end_date if row else '' }}"></label>
+<label>Sample target<input type="number" name="sample_target" min="0" value="{{ row.sample_target if row else 0 }}"></label>
+<label class="full">Description<textarea name="description">{{ row.description if row else '' }}</textarea></label>
+<div class="form-actions full">
+<a class="btn" href="{{ url_for('studies_list') }}">Cancel</a>
+<button class="btn primary">Save study</button>
+</div>
+</form>
+{% endblock %}

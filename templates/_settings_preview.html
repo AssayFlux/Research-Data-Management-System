@@ -1,0 +1,148 @@
+{#
+  Unified live preview — one component used on all tabs.
+  Usage:
+    {% with mode='app' %}     — full dashboard mock
+      or  mode='login' %}     — login page mock
+      {% include '_settings_preview.html' %}
+    {% endwith %}
+#}
+<div class="spv">
+  <div class="spv-head">
+    <span class="spv-dot"></span>
+    <span>Live preview</span>
+  </div>
+
+  {% if mode == 'login' %}
+  {# ─────── Login page mock ─────── #}
+  <div class="spv-frame spv-login-frame"
+       data-spv="login_bg_color"
+       style="background: {{ settings.get('login_bg','#f7f9fb') }}">
+    <div class="spv-login-card">
+      <div class="spv-login-logo" style="color: {{ settings.get('ui_primary','#059669') }}">
+        ✚
+      </div>
+      <div class="spv-login-appname" data-spv="app_name">
+        {{ settings.get('app_name','Research DMS') }}
+      </div>
+      <div class="spv-login-tagline" data-spv="app_tagline">
+        {{ settings.get('app_tagline','Clinical research workspace') }}
+      </div>
+
+      <h3 class="spv-login-title" data-spv="login_title">
+        {{ settings.get('login_title','Sign in') }}
+      </h3>
+      <p class="spv-login-sub" data-spv="login_subtitle">
+        {{ settings.get('login_subtitle','Secure access to your research workspace.') }}
+      </p>
+
+      <label class="spv-login-label">Username</label>
+      <input class="spv-login-input" disabled value="jdoe">
+
+      <label class="spv-login-label">Password</label>
+      <input class="spv-login-input" disabled value="••••••••">
+
+      <button type="button" class="spv-login-btn"
+              data-spv="ui_primary_bg"
+              style="background: {{ settings.get('ui_primary','#059669') }}; color: {{ settings.get('btn_text_color','#fff') }}">
+        {{ settings.get('login_title','Sign in') }}
+      </button>
+    </div>
+  </div>
+
+  {% else %}
+  {# ─────── Dashboard mock ─────── #}
+  <div class="spv-frame"
+       data-spv="page_bg"
+       style="background: {{ settings.get('ui_page_bg','#f7f9fb') }}">
+
+    {# Topbar #}
+    <div class="spv-topbar" data-spv="topbar_bg"
+         style="background: {{ settings.get('topbar_bg','#ffffff') }}">
+      <span class="spv-menu">☰</span>
+      <span class="spv-logo">✚</span>
+      <span class="spv-title" data-spv="topbar_text"
+            style="color: {{ settings.get('topbar_text','#0f172a') }}">
+        {{ settings.get('app_name','Research DMS') }}
+      </span>
+    </div>
+
+    <div class="spv-body">
+
+      {# Sidebar #}
+      <div class="spv-sidebar" data-spv="sidebar_bg"
+           style="background: {{ settings.get('sidebar_bg','#ffffff') }}">
+        <div class="spv-side-group" data-spv="muted_color"
+             style="color: {{ settings.get('muted_color','#64748b') }}">
+          NAVIGATION
+        </div>
+        <div class="spv-side-item" data-spv="sidebar_text"
+             style="color: {{ settings.get('sidebar_text','#334155') }}">
+          <span>📊</span> Dashboard
+        </div>
+        <div class="spv-side-item spv-side-active" data-spv="sidebar_text"
+             style="color: {{ settings.get('sidebar_text','#334155') }}">
+          <span>👥</span> Participants
+        </div>
+        <div class="spv-side-item" data-spv="sidebar_text"
+             style="color: {{ settings.get('sidebar_text','#334155') }}">
+          <span>⚙</span> Settings
+        </div>
+      </div>
+
+      {# Content #}
+      <div class="spv-content">
+
+        <h3 class="spv-heading" data-spv="heading_color"
+            style="color: {{ settings.get('heading_color','#0f172a') }}">
+          Section heading
+        </h3>
+
+        <p class="spv-text" data-spv="text_color"
+           style="color: {{ settings.get('text_color','#0f172a') }}">
+          This is how body text looks with your colours.
+        </p>
+
+        <div class="spv-card" data-spv="card_bg"
+             style="background: {{ settings.get('card_bg','#ffffff') }}">
+          <div class="spv-card-title" data-spv="heading_color"
+               style="color: {{ settings.get('heading_color','#0f172a') }}">
+            Card title
+          </div>
+          <p class="spv-card-text" data-spv="text_color"
+             style="color: {{ settings.get('text_color','#0f172a') }}">
+            A sample paragraph inside a card panel.
+          </p>
+          <div class="spv-card-meta" data-spv="muted_color"
+               style="color: {{ settings.get('muted_color','#64748b') }}">
+            Updated just now · 3 items
+          </div>
+        </div>
+
+        <p class="spv-text" data-spv="text_color"
+           style="color: {{ settings.get('text_color','#0f172a') }}">
+          <a href="#" data-spv="link_color" onclick="return false;"
+             style="color: {{ settings.get('link_color','#059669') }}">
+            This is a sample link
+          </a> — it uses your link colour.
+        </p>
+
+        <button type="button" class="spv-btn"
+                data-spv="ui_primary_bg"
+                style="background: {{ settings.get('ui_primary','#059669') }}; color: {{ settings.get('btn_text_color','#ffffff') }}">
+          Primary button
+        </button>
+
+        <span class="spv-badge"
+              data-spv="ui_accent_bg"
+              style="background: {{ settings.get('ui_accent','#14b8a6') }}; color:#fff">
+          ACCENT
+        </span>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="spv-foot">
+    Preview updates as you change settings.
+  </div>
+</div>

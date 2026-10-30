@@ -1,0 +1,57 @@
+{% extends "base.html" %}{% block title %}Data dictionary · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Data dictionary</h1>
+  <p>Formal specification of every parameter in your project.</p></div>
+  <div style="display:flex;gap:8px">
+    <a class="btn" href="{{ url_for('data_dictionary_export', fmt='csv') }}">⬇ CSV</a>
+    <a class="btn" href="{{ url_for('data_dictionary_export', fmt='xlsx') }}">⬇ Excel</a>
+    <a class="btn primary" href="{{ url_for('data_dictionary_export', fmt='pdf') }}">📕 PDF</a>
+  </div>
+</div>
+
+<div class="card table-wrap">
+  <table>
+    <thead><tr><th>Code</th><th>Name</th><th>Category</th><th>Type</th>
+      <th>Unit</th><th>Reference</th><th>Required</th></tr></thead>
+    <tbody>
+      {% for p in params %}
+      <tr>
+        <td><b>{{ p.code }}</b></td>
+        <td>{{ p.name }}</td>
+        <td>{{ p.category }}<br><small class="muted">{{ p.group_name or '' }}</small></td>
+        <td><span class="badge">{{ p.data_type }}</span></td>
+        <td>{{ p.unit or '—' }}</td>
+        <td>
+          {% if p.ref_text %}{{ p.ref_text }}
+          {% elif p.ref_low is not none or p.ref_high is not none %}
+            {{ p.ref_low if p.ref_low is not none else '' }}–{{ p.ref_high if p.ref_high is not none else '' }}
+          {% else %}—{% endif %}
+        </td>
+        <td>{% if p.required %}<span class="badge danger">Yes</span>{% else %}No{% endif %}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="muted" style="text-align:center;padding:28px">No parameters yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if formulas %}
+<div class="card" style="margin-top:12px">
+  <h2>Formulas ({{ formulas|length }})</h2>
+  <table>
+    <thead><tr><th>Name</th><th>Expression</th><th>Output</th></tr></thead>
+    <tbody>
+      {% for f in formulas %}
+      <tr>
+        <td><b>{{ f.name }}</b></td>
+        <td><code>{{ f.expression }}</code></td>
+        <td>{{ f.output_name or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

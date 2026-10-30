@@ -1,0 +1,39 @@
+{% extends "base.html" %}{% block title %}Sessions · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Active sessions</h1><p>Devices currently signed in to your account.</p></div>
+  <form method="post" action="{{ url_for('account_sessions_revoke_others') }}"
+        onsubmit="return confirm('Sign out every other device?')">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <button class="btn danger">Sign out all other devices</button>
+  </form>
+</div>
+
+<div class="card table-wrap account-sessions-wrap">
+  <table>
+    <thead><tr><th>Device</th><th class="hide-sm">IP</th><th>First seen</th><th>Last seen</th><th></th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr {% if r.token == current %}style="background:#ecfdf5"{% endif %}>
+        <td>
+          <b>{{ r.device or 'unknown' }}</b>
+          {% if r.token == current %}<span class="badge success">this device</span>{% endif %}
+          <div class="ua-cell">{{ (r.user_agent or '')[:140] }}</div>
+        </td>
+        <td class="hide-sm">{{ r.ip }}</td>
+        <td><small>{{ r.created_at }}</small></td>
+        <td><small>{{ r.last_seen }}</small></td>
+        <td>
+          {% if r.token != current %}
+          <form method="post" action="{{ url_for('account_session_revoke', sid=r.id) }}">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="btn sm danger">Revoke</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}<tr><td colspan="5" class="muted" style="text-align:center;padding:24px">No other sessions.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

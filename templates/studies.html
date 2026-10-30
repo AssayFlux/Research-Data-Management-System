@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Studies · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>Studies</h1><p>Create and manage independent research studies.</p></div>
+  <a class="btn primary" href="{{ url_for('study_new') }}">+ New study</a>
+</div>
+
+{% if not rows %}
+<div class="card empty-state">
+  <div class="empty-icon">{{ icon('flask', 40, '#cbd5e1', 1.5) }}</div>
+  <h2>No studies yet</h2>
+  <p>Create your first study to begin.</p>
+  <a class="btn primary" href="{{ url_for('study_new') }}">+ Create study</a>
+</div>
+{% else %}
+
+{# ── Desktop table ── #}
+<div class="card table-wrap mobile-hide">
+  <table>
+    <thead><tr><th>Code</th><th>Title</th><th>PI</th><th>Status</th>
+      <th class="num">Target</th><th class="num">Enrolled</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td><span class="param-code">{{ r.study_code }}</span></td>
+        <td>{{ r.title }}</td>
+        <td>{{ r.pi or '—' }}</td>
+        <td><span class="badge">{{ r.status }}</span></td>
+        <td class="num">{{ r.sample_target }}</td>
+        <td class="num">{{ r.n_participants }}</td>
+        <td>
+          <a href="{{ url_for('study_edit', sid=r.id) }}">Edit</a> ·
+{% if current_user and current_user.role == 'ADMIN' %}<a href="{{ url_for('study_permissions', sid=r.id) }}">Permissions</a> ·{% endif %}
+          <a href="{{ url_for('print_study', sid=r.id) }}" target="_blank">Print</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# ── Mobile cards ── #}
+<div class="mobile-only">
+  {% for r in rows %}
+  <div class="m-card">
+    <div class="m-card-head">
+      <div style="flex:1;min-width:0">
+        <div class="m-card-code">{{ r.study_code }}</div>
+        <div class="m-card-title">{{ r.title }}</div>
+      </div>
+      <span class="badge">{{ r.status }}</span>
+    </div>
+    <div class="m-card-grid">
+      <div><span>PI</span><b>{{ r.pi or '—' }}</b></div>
+      <div><span>Target</span><b>{{ r.sample_target }}</b></div>
+      <div><span>Enrolled</span><b>{{ r.n_participants }}</b></div>
+      <div><span>Dept</span><b>{{ r.department or '—' }}</b></div>
+    </div>
+    <div class="m-card-actions">
+      <a class="m-btn" href="{{ url_for('study_edit', sid=r.id) }}">✏️ Edit</a>
+      <a class="m-btn" href="{{ url_for('print_study', sid=r.id) }}" target="_blank">🖨 Print</a>
+      <a class="m-btn" href="{{ url_for('export_study', sid=r.id, fmt='xlsx') }}">⬇ Export</a>
+      {% if current_user.role == 'ADMIN' %}
+      <a class="m-btn" href="{{ url_for('study_freeze', sid=r.id) }}">🔒 Freeze</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endif %}
+{% endblock %}

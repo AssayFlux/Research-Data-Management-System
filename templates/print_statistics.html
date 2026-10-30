@@ -1,0 +1,98 @@
+{% from "_print_macros.html" import print_styles, print_header, print_footer, print_toolbar %}
+{% set cfg = print_cfg('statistics') %}
+<!doctype html><html><head><meta charset="utf-8">
+<title>Statistics — {{ p.name }}</title>
+{{ print_styles(cfg) }}
+</head><body>
+{{ print_toolbar() }}
+<div class="cp-wrap">
+  {{ print_header(cfg, app_name) }}
+
+  <div class="cp-body">
+    <h2>{{ s.study_code }} — {{ p.name }} statistical report</h2>
+
+    <h2>Descriptive statistics</h2>
+    {% if desc.n %}
+    <table>
+      <thead><tr>
+        <th class="num">N</th><th class="num">Mean</th><th class="num">SD</th>
+        <th class="num">SE</th><th class="num">Median</th>
+        <th class="num">Q1</th><th class="num">Q3</th><th class="num">IQR</th>
+        <th class="num">Min</th><th class="num">Max</th><th class="num">95% CI</th>
+      </tr></thead>
+      <tbody><tr>
+        <td class="num">{{ desc.n }}</td>
+        <td class="num">{{ desc.mean }}</td>
+        <td class="num">{{ desc.sd }}</td>
+        <td class="num">{{ desc.se }}</td>
+        <td class="num">{{ desc.median }}</td>
+        <td class="num">{{ desc.q1 }}</td>
+        <td class="num">{{ desc.q3 }}</td>
+        <td class="num">{{ desc.iqr }}</td>
+        <td class="num">{{ desc.min }}</td>
+        <td class="num">{{ desc.max }}</td>
+        <td class="num">{{ desc.ci95_low }} – {{ desc.ci95_high }}</td>
+      </tr></tbody>
+    </table>
+    {% else %}<p style="color:#64748b">No numeric values.</p>{% endif %}
+
+    {% if norm.available %}
+    <h2>Normality</h2>
+    <table>
+      <tbody>
+        <tr><th style="width:30%">Test</th><td>{{ norm.test }}</td></tr>
+        <tr><th>Statistic</th><td>{{ norm.statistic }}</td></tr>
+        <tr><th>p-value</th><td>{{ norm.p }}</td></tr>
+        <tr><th>Verdict</th><td><b>{{ norm.verdict }}</b></td></tr>
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if chart %}
+    <h2>Distribution</h2>
+    <div style="text-align:center">
+      <img src="{{ chart }}" style="max-width:100%;height:auto">
+    </div>
+    {% endif %}
+
+    {% if groups %}
+    <h2>Values by group</h2>
+    <table>
+      <thead><tr><th>Group</th><th class="num">N</th>
+        <th class="num">Mean</th><th class="num">SD</th><th class="num">Median</th></tr></thead>
+      <tbody>
+        {% for gname, vals in groups.items() %}
+        {% set st = descriptive_stub(vals) if false else None %}
+        <tr>
+          <td><b>{{ gname }}</b></td>
+          <td class="num">{{ vals|length }}</td>
+          <td class="num">{{ ((vals|sum) / (vals|length))|round(4) if vals else '—' }}</td>
+          <td class="num">—</td>
+          <td class="num">—</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if comparison and comparison.test %}
+    <h2>Group comparison</h2>
+    <table>
+      <tbody>
+        <tr><th style="width:30%">Test</th><td><b>{{ comparison.test }}</b></td></tr>
+        <tr><th>Group 1</th><td>{{ comparison.g1 }} (n={{ comparison.n_a }})</td></tr>
+        <tr><th>Group 2</th><td>{{ comparison.g2 }} (n={{ comparison.n_b }})</td></tr>
+        <tr><th>Statistic</th><td>{{ comparison.statistic }}</td></tr>
+        <tr><th>p-value</th><td><b>{{ comparison.p }}</b>
+          {% if comparison.p < 0.05 %}<span style="color:#059669"> (significant)</span>
+          {% else %}<span style="color:#64748b"> (not significant)</span>{% endif %}
+        </td></tr>
+        {% if comparison.note %}<tr><th>Why this test</th><td>{{ comparison.note }}</td></tr>{% endif %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+
+  {{ print_footer(cfg) }}
+</div>
+</body></html>

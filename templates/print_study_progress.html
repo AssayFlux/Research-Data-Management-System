@@ -1,0 +1,66 @@
+{% from "_print_macros.html" import print_styles, print_header, print_footer, print_toolbar %}
+{% set cfg = print_cfg('study_progress') %}
+<!doctype html><html><head><meta charset="utf-8">
+<title>{{ s.study_code }} — progress</title>
+{{ print_styles(cfg) }}
+</head><body>
+{{ print_toolbar() }}
+<div class="cp-wrap">
+  {{ print_header(cfg, app_name) }}
+
+  <div class="cp-body">
+    <h2>{{ s.study_code }} — {{ s.title }}</h2>
+    <div class="grid">
+      <div><b>Status</b>{{ s.status }}</div>
+      <div><b>Start</b>{{ s.start_date or '—' }}</div>
+      <div><b>End</b>{{ s.end_date or '—' }}</div>
+      <div><b>Target</b>{{ s.sample_target }}</div>
+    </div>
+
+    <h2>Recruitment</h2>
+    {% set pct = (n / s.sample_target * 100)|round(1) if s.sample_target else 0 %}
+    <table>
+      <tbody>
+        <tr><th style="width:40%">Participants enrolled</th><td><b>{{ n }}</b></td></tr>
+        <tr><th>Sample target</th><td>{{ s.sample_target }}</td></tr>
+        <tr><th>Completion</th><td><b>{{ pct }}%</b></td></tr>
+        <tr><th>Data records entered</th><td>{{ n_records }}</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Consent</h2>
+    <table>
+      <thead><tr><th>Status</th><th class="num">N</th></tr></thead>
+      <tbody>
+        {% for k, v in consent.items() %}<tr><td>{{ k }}</td><td class="num">{{ v }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Screening</h2>
+    <table>
+      <thead><tr><th>Status</th><th class="num">N</th></tr></thead>
+      <tbody>
+        {% for k, v in screening.items() %}<tr><td>{{ k }}</td><td class="num">{{ v }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Enrollment</h2>
+    <table>
+      <thead><tr><th>Status</th><th class="num">N</th></tr></thead>
+      <tbody>
+        {% for k, v in enrollment.items() %}<tr><td>{{ k }}</td><td class="num">{{ v }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+
+    <h2>By group</h2>
+    <table>
+      <thead><tr><th>Group</th><th class="num">N</th></tr></thead>
+      <tbody>
+        {% for k, v in groups.items() %}<tr><td>{{ k }}</td><td class="num">{{ v }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {{ print_footer(cfg) }}
+</div>
+</body></html>

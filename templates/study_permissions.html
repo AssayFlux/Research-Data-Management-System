@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Permissions · {{ s.study_code }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>Study permissions</h1>
+    <p>{{ s.study_code }} — {{ s.title }}</p>
+  </div>
+  <a class="btn" href="{{ url_for('studies_list') }}">← Studies</a>
+</div>
+
+<div class="card">
+  <div class="alert info">
+    <b>How this works:</b>
+    <ul style="margin:6px 0 0;padding-left:18px;line-height:1.7;font-size:13px">
+      <li><b>ADMIN</b> always sees every study.</li>
+      <li>A researcher with <b>no assignments</b> sees every study (default).</li>
+      <li>Once you assign a researcher to <b>any</b> study, they will only see the studies you assign.</li>
+    </ul>
+  </div>
+
+  {% if not users %}
+  <div class="empty-state" style="text-align:center;padding:40px 20px">
+    <div style="font-size:40px;margin-bottom:10px">👤</div>
+    <h2 style="margin:0 0 6px">No researchers yet</h2>
+    <p class="muted">Create a RESEARCHER or VIEWER account first.</p>
+    <a class="btn primary" href="{{ url_for('users_page') }}">Manage users</a>
+  </div>
+  {% else %}
+  <form method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+    <table>
+      <thead>
+        <tr><th style="width:44px"></th><th>User</th><th>Role</th></tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>
+            <input type="checkbox" name="user_id" value="{{ u.id }}"
+                   {% if u.id in assigned %}checked{% endif %}>
+          </td>
+          <td>
+            <b>{{ u.display_name or u.username }}</b>
+            <div class="tiny muted">@{{ u.username }}</div>
+          </td>
+          <td><span class="badge">{{ u.role }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="form-actions" style="margin-top:16px">
+      <a class="btn" href="{{ url_for('studies_list') }}">Cancel</a>
+      <button class="btn primary">Save permissions</button>
+    </div>
+  </form>
+  {% endif %}
+</div>
+
+{% endblock %}

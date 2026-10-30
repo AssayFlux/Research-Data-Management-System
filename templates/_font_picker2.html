@@ -1,0 +1,70 @@
+<div class="font-picker-wrap">
+  <label class="cfp-label">Font family — click to select</label>
+  <input type="hidden" name="ui_font_class" id="font_class_input"
+         value="{{ settings.get('ui_font_class','') }}">
+
+  <div class="font-search-row">
+    <input type="search" id="font_search" placeholder="Search 200 fonts…" autocomplete="off">
+    <span class="font-count" id="font_count">200 fonts</span>
+  </div>
+
+  <div class="font-picker" id="font_picker">
+    {% for cls, label in font_catalog %}
+    <div class="font-cell {{ cls }}"
+         data-cls="{{ cls }}"
+         data-name="{{ label|lower }}"
+         {% if settings.get('ui_font_class','') == cls %}data-sel="1"{% endif %}>
+      <div class="fc-label">{{ label }}</div>
+      <div class="fc-sample">The quick brown fox jumps</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+(function(){
+  // Load every Google font we need — only the ones on this page
+  const families = [...document.querySelectorAll('.font-cell')]
+    .map(c => c.dataset.cls)
+    .filter(cls => cls.startsWith('f-') && !cls.startsWith('f-sys'))
+    .map(cls => cls.replace('f-',''))
+    .map(slug => slug.split('-').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join('+'));
+  const uniq = [...new Set(families)];
+  // Google Fonts URL supports ~10 per request; batch them
+  for (let i = 0; i < uniq.length; i += 10) {
+    const chunk = uniq.slice(i, i+10)
+      .map(f => 'family=' + f + ':wght@300;400;500;600;700;800').join('&');
+    const l = document.createElement('link');
+    l.rel = 'stylesheet';
+    l.href = 'https://fonts.googleapis.com/css2?' + chunk + '&display=swap';
+    document.head.appendChild(l);
+  }
+
+  const inp = document.getElementById('font_class_input');
+  const picker = document.getElementById('font_picker');
+  const search = document.getElementById('font_search');
+  const count = document.getElementById('font_count');
+
+  // Mark the current selection
+  picker.querySelectorAll('.font-cell').forEach(cell => {
+    if (cell.dataset.sel === '1') cell.classList.add('sel');
+    cell.onclick = () => {
+      inp.value = cell.dataset.cls;
+      picker.querySelectorAll('.font-cell').forEach(x => x.classList.remove('sel'));
+      cell.classList.add('sel');
+    };
+  });
+
+  // Live search
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    let visible = 0;
+    picker.querySelectorAll('.font-cell').forEach(cell => {
+      const match = !q || cell.dataset.name.includes(q) || cell.dataset.cls.includes(q);
+      cell.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    count.textContent = visible + ' font' + (visible === 1 ? '' : 's');
+  });
+})();
+</script>

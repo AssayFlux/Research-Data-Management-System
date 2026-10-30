@@ -1,0 +1,34 @@
+{% extends "base.html" %}{% block title %}Set up 2FA{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Set up 2FA</h1><p>Scan the QR with your authenticator app.</p></div>
+</div>
+
+<div class="grid2">
+  <div class="card" style="text-align:center">
+    {% if qr %}
+    <img src="{{ qr }}" style="max-width:220px;width:100%;border-radius:10px;border:1px solid var(--border)">
+    {% else %}
+    <p class="muted">QR generation needs <code>qrcode[pil]</code>. Add the secret manually below.</p>
+    {% endif %}
+    <p style="margin-top:10px;font-size:12px" class="muted">Or enter this secret manually:</p>
+    <div style="font-family:var(--mono);background:#f1f5f9;padding:10px;border-radius:8px;word-break:break-all">{{ secret }}</div>
+  </div>
+
+  <div class="card">
+    <h2>Verify</h2>
+    <p class="muted">Enter the 6-digit code shown in your app.</p>
+    <form method="post" action="{{ url_for('two_factor_enable') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <label>Code<input name="code" placeholder="123456" maxlength="6" required pattern="\d{6}"></label>
+      <button class="btn primary">Enable 2FA</button>
+    </form>
+    <hr style="margin:18px 0;border:0;border-top:1px solid var(--border)">
+    <h3>Backup codes</h3>
+    <p class="muted tiny">Save these — each can be used once if you lose your phone.</p>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;font-family:var(--mono);font-size:12px">
+      {% for c in codes %}<div style="background:#f8fafc;padding:6px 8px;border-radius:6px">{{ c }}</div>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

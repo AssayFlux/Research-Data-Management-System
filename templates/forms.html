@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Forms · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>Forms</h1>
+    <p>Group parameters into data-collection forms.</p>
+  </div>
+  <a class="btn" href="{{ url_for('parameter_library_page') }}">
+    {{ icon('book-open', 14, '#0f766e', 2) }} Parameter library
+  </a>
+</div>
+
+<div class="forms-layout">
+
+  {# ═══════════ CREATE FORM ═══════════ #}
+  <form class="card form-create" method="post" action="{{ url_for('form_new') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+    <div class="fc-head">
+      <span class="fc-ic">{{ icon('plus-circle', 20, '#0f766e', 2) }}</span>
+      <div>
+        <h2>Create form</h2>
+        <p class="muted">Build a reusable data collection form</p>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <label>Name
+        <input name="name" required placeholder="e.g. Baseline visit, Screening">
+      </label>
+      <label>Study
+        <select name="study_id">
+          <option value="">Global (no study)</option>
+          {% for s in studies %}
+          <option value="{{ s.id }}">{{ s.study_code }} — {{ s.title[:34] }}{% if s.title|length > 34 %}…{% endif %}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="full">Description
+        <textarea name="description" rows="2" placeholder="What is this form for?"></textarea>
+      </label>
+      <label>Status
+        <select name="status">
+          <option value="DRAFT">DRAFT — not yet in use</option>
+          <option value="PUBLISHED">PUBLISHED — ready for data entry</option>
+        </select>
+      </label>
+    </div>
+
+    {# ─── Fields section with proper button placement ─── #}
+    <div class="fc-fields-head">
+      <div class="fc-fields-title">
+        {{ icon('list-checks', 15, '#0f766e', 2) }}
+        <span>Select fields</span>
+        <span class="fc-fields-count" id="fields-count">0 selected</span>
+      </div>
+      <a class="btn sm" href="{{ url_for('parameter_library_page') }}" target="_blank">
+        {{ icon('book-open', 12, '#0f766e', 2) }} Add from library
+      </a>
+    </div>
+
+    {# ─── Search box for parameters ─── #}
+    <div class="fc-search">
+      <input type="search" id="fc-search-input" placeholder="Search parameters by name or code…" autocomplete="off">
+    </div>
+
+    {# ─── Parameter checkboxes ─── #}
+    <div class="fc-checks" id="fc-checks">
+      {% set grouped = {} %}
+      {% for p in params %}
+        {% if p.category not in grouped %}
+          {% set _ = grouped.update({p.category: []}) %}
+        {% endif %}
+        {% set _ = grouped[p.category].append(p) %}
+      {% endfor %}
+
+      {% for cat, items in grouped.items() %}
+      <div class="fc-group" data-category="{{ cat }}">
+        <div class="fc-group-title">{{ cat }} <span class="fc-group-count">{{ items|length }}</span></div>
+        {% for p in items %}
+        <label class="fc-check" data-name="{{ p.name|lower }} {{ p.code|lower }}">
+          <input type="checkbox" name="parameter_ids" value="{{ p.id }}">
+          <span class="fc-check-box"></span>
+          <span class="fc-check-body">
+            <span class="fc-check-name">{{ p.name }}</span>
+            <span class="fc-check-code">{{ p.code }}</span>
+          </span>
+        </label>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="fc-empty">
+        <p>No parameters yet.</p>
+        <a class="btn primary sm" href="{{ url_for('parameter_library_page') }}">
+          Install parameters from library
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="form-actions" style="margin-top:16px;justify-content:space-between">
+      <span class="muted tiny" id="fc-hint">Tick the parameters you want on this form.</span>
+      <div style="display:flex;gap:8px">
+        <a class="btn" href="{{ url_for('forms_list') }}">Cancel</a>
+        <button class="btn primary">Create form</button>
+      </div>
+    </div>
+  </form>
+
+  {# ═══════════ EXISTING FORMS ═══════════ #}
+  <div class="card forms-list-card">
+    <div class="fc-head">
+      <span class="fc-ic" style="background:#eff6ff">{{ icon('layout-template', 20, '#2563eb', 2) }}</span>
+      <div>
+        <h2>Existing forms</h2>
+        <p class="muted">{{ rows|length }} form(s)</p>
+      </div>
+    </div>
+
+    {% if rows %}
+    <div class="form-list">
+      {% for f in rows %}
+      <div class="form-item">
+        <div class="fi-main">
+          <div class="fi-name">{{ f.name }}</div>
+          <div class="fi-meta">
+            {{ f.study_code or 'Global' }} · {{ f.field_count }} field{{ 's' if f.field_count != 1 else '' }} · {{ f.created_at[:10] if f.created_at else '' }}
+          </div>
+        </div>
+        <div class="fi-actions">
+          <span class="badge {{ 'success' if f.status == 'PUBLISHED' else '' }}">{{ f.status }}</span>
+          <a class="btn sm" href="{{ url_for('form_view', fid=f.id) }}" title="Open">👁</a>
+          <form method="post" action="{{ url_for('form_delete', fid=f.id) }}"
+                onsubmit="return confirm('Delete form {{ f.name }}?')" style="display:inline">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="btn sm danger" type="submit" title="Delete">🗑</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="fc-empty">
+      <p>No forms created yet.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+(function() {
+  const checks = document.querySelectorAll('.fc-check input[type=checkbox]');
+  const counter = document.getElementById('fields-count');
+  const search  = document.getElementById('fc-search-input');
+  const groups  = document.querySelectorAll('.fc-group');
+
+  function updateCount() {
+    const n = document.querySelectorAll('.fc-check input:checked').length;
+    counter.textContent = n + ' selected';
+    counter.classList.toggle('active', n > 0);
+  }
+  checks.forEach(c => c.addEventListener('change', updateCount));
+
+  // Search filter
+  if (search) {
+    search.addEventListener('input', () => {
+      const q = search.value.trim().toLowerCase();
+      groups.forEach(g => {
+        let visibleInGroup = 0;
+        g.querySelectorAll('.fc-check').forEach(lbl => {
+          const match = !q || lbl.dataset.name.includes(q);
+          lbl.style.display = match ? '' : 'none';
+          if (match) visibleInGroup++;
+        });
+        g.style.display = visibleInGroup > 0 ? '' : 'none';
+      });
+    });
+  }
+
+  updateCount();
+})();
+</script>
+
+{% endblock %}

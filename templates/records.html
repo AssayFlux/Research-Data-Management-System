@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Records · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>Records</h1><p>All collected data records.</p></div>
+  <a class="btn" href="{{ url_for('export_page') }}">Export</a>
+</div>
+
+{% if not rows %}
+<div class="card empty-state">
+  <div class="empty-icon">{{ icon('folder-open', 40, '#cbd5e1', 1.5) }}</div>
+  <h2>No records yet</h2>
+  <p>Enter data from a participant page.</p>
+  <a class="btn primary" href="{{ url_for('participants_list') }}">Go to participants</a>
+</div>
+{% else %}
+
+{# ── Desktop table ── #}
+<div class="card table-wrap mobile-hide">
+  <table>
+    <thead><tr><th>ID</th><th>Study</th><th>Participant</th><th>Visit</th>
+      <th>Entered by</th><th>Created</th><th></th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td><b>#{{ r.id }}</b></td>
+        <td>{{ r.study_code }}</td>
+        <td><a href="{{ url_for('participant_detail', pid=r.participant_id) }}">{{ r.participant_code }}</a></td>
+        <td>{{ r.visit_date or '—' }}</td>
+        <td>{{ r.username or '—' }}</td>
+        <td><small>{{ r.created_at }}</small></td>
+        <td><a href="{{ url_for('record_view', rid=r.id) }}">View</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# ── Mobile cards ── #}
+<div class="mobile-only">
+  {% for r in rows[:50] %}
+  <div class="m-card">
+    <div class="m-card-head">
+      <div style="flex:1;min-width:0">
+        <div class="m-card-code">#{{ r.id }} · {{ r.participant_code }}</div>
+        <div class="m-card-title">{{ r.study_code }}</div>
+      </div>
+    </div>
+    <div class="m-card-grid">
+      <div><span>Visit</span><b>{{ r.visit_date or '—' }}</b></div>
+      <div><span>Entered by</span><b>{{ r.username or '—' }}</b></div>
+    </div>
+    <div class="m-card-actions">
+      <a class="m-btn" href="{{ url_for('record_view', rid=r.id) }}">👁 View</a>
+      <a class="m-btn" href="{{ url_for('record_history', rid=r.id) }}">📜 History</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endif %}
+{% endblock %}

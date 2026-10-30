@@ -1,0 +1,34 @@
+{% from "_print_macros.html" import print_styles, print_header, print_footer, print_toolbar %}
+{% set cfg = print_cfg('records') %}
+<!doctype html><html><head><meta charset="utf-8">
+<title>Records · {{ app_name }}</title>
+{{ print_styles(cfg) }}
+</head><body>
+{{ print_toolbar() }}
+<div class="cp-wrap">
+  {{ print_header(cfg, app_name) }}
+
+  <div class="cp-body">
+    <h2>Collected Data Records ({{ rows|length }})</h2>
+    <table>
+      <thead><tr><th>ID</th><th>Study</th><th>Participant</th><th>Visit date</th><th>Entered by</th><th>Created</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>#{{ r.id }}</td>
+          <td>{{ r.study_code }}</td>
+          <td>{{ r.participant_code }}</td>
+          <td>{{ r.visit_date or '—' }}</td>
+          <td>{{ r.username or '—' }}</td>
+          <td>{{ r.created_at }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;color:#64748b">No records.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {{ print_footer(cfg) }}
+</div>
+</body></html>

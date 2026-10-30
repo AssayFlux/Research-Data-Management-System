@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Print center · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>Print center</h1>
+  <p>Generate printable A4 reports. Every page uses your saved header, signatures & footer.</p></div>
+  <a class="btn" href="{{ url_for('print_settings') }}">⚙️ Print settings</a>
+</div>
+
+<div class="grid2">
+
+  <!-- 1. Participants summary -->
+  <div class="card">
+    <h3>👥 Participants summary</h3>
+    <p class="tiny">Roster of every participant in a study, with optional single-parameter column.</p>
+    <label>Study
+      <select id="ps_study">
+        {% for s in studies %}<option value="{{ s.id }}">{{ s.study_code }} — {{ s.title }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Optional parameter column
+      <select id="ps_param">
+        <option value="">— none —</option>
+        {% for p in params %}<option value="{{ p.id }}">{{ p.name }} ({{ p.code }})</option>{% endfor %}
+      </select>
+    </label>
+    <button class="btn primary" onclick="goParticipantsSummary()">Open print</button>
+  </div>
+
+  <!-- 2. Parameter summary -->
+  <div class="card">
+    <h3>🔬 Parameter summary</h3>
+    <p class="tiny">One parameter across all participants, with statistics.</p>
+    <label>Parameter
+      <select id="pars_param">
+        {% for p in params %}<option value="{{ p.id }}">{{ p.category }} · {{ p.name }} ({{ p.code }})</option>{% endfor %}
+      </select>
+    </label>
+    <label>Study (optional)
+      <select id="pars_study">
+        <option value="">All studies</option>
+        {% for s in studies %}<option value="{{ s.id }}">{{ s.study_code }}</option>{% endfor %}
+      </select>
+    </label>
+    <button class="btn primary" onclick="goParameterSummary()">Open print</button>
+  </div>
+
+  <!-- 3. Group comparison -->
+  <div class="card">
+    <h3>⚖️ Group comparison</h3>
+    <p class="tiny">Case vs Control with auto-selected test (Welch / Mann-Whitney).</p>
+    <label>Study
+      <select id="gc_study">
+        {% for s in studies %}<option value="{{ s.id }}">{{ s.study_code }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Parameter
+      <select id="gc_param">
+        {% for p in params %}<option value="{{ p.id }}">{{ p.name }} ({{ p.code }})</option>{% endfor %}
+      </select>
+    </label>
+    <button class="btn primary" onclick="goGroupComparison()">Open print</button>
+  </div>
+
+  <!-- 4. Study progress -->
+  <div class="card">
+    <h3>📈 Study progress</h3>
+    <p class="tiny">Recruitment dashboard: consent, screening, enrollment, groups.</p>
+    <label>Study
+      <select id="sp_study">
+        {% for s in studies %}<option value="{{ s.id }}">{{ s.study_code }}</option>{% endfor %}
+      </select>
+    </label>
+    <button class="btn primary" onclick="goStudyProgress()">Open print</button>
+  </div>
+
+  <!-- 5. Quality report -->
+  <div class="card">
+    <h3>✅ Data quality report</h3>
+    <p class="tiny">All open quality issues, ready for review.</p>
+    <a class="btn primary" href="{{ url_for('print_quality_report') }}" target="_blank">Open print</a>
+  </div>
+
+  <!-- 6. Blank form -->
+  <div class="card">
+    <h3>📋 Blank data form</h3>
+    <p class="tiny">Empty form with all active parameters, for hand-filling.</p>
+    <label>Study (optional — for header)
+      <select id="bf_study">
+        <option value="">Global (no study)</option>
+        {% for s in studies %}<option value="{{ s.id }}">{{ s.study_code }}</option>{% endfor %}
+      </select>
+    </label>
+    <button class="btn primary" onclick="goBlankForm()">Open print</button>
+  </div>
+
+  <!-- 7. Statistics report -->
+  <div class="card">
+    <h3>📊 Statistics report</h3>
+    <p class="tiny">Full statistical report: descriptive, normality, group comparison, chart.</p>
+    <label>Study
+      <select id="sr_study">
+        {% for s in studies %}<option value="{{ s.id }}">{{ s.study_code }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Parameter
+      <select id="sr_param">
+        {% for p in params %}<option value="{{ p.id }}">{{ p.name }} ({{ p.code }})</option>{% endfor %}
+      </select>
+    </label>
+    <button class="btn primary" onclick="goStatisticsReport()">Open print</button>
+  </div>
+
+</div>
+
+<script>
+function openInNewTab(url) { window.open(url, "_blank"); }
+function goParticipantsSummary() {
+  const s = document.getElementById("ps_study").value;
+  const p = document.getElementById("ps_param").value;
+  if (!s) { alert("Pick a study"); return; }
+  openInNewTab(`/print/participants-summary/${s}${p ? "?parameter_id=" + p : ""}`);
+}
+function goParameterSummary() {
+  const p = document.getElementById("pars_param").value;
+  const s = document.getElementById("pars_study").value;
+  if (!p) { alert("Pick a parameter"); return; }
+  openInNewTab(`/print/parameter-summary/${p}${s ? "?study_id=" + s : ""}`);
+}
+function goGroupComparison() {
+  const s = document.getElementById("gc_study").value;
+  const p = document.getElementById("gc_param").value;
+  if (!s || !p) { alert("Pick study and parameter"); return; }
+  openInNewTab(`/print/group-comparison/${s}?parameter_id=${p}`);
+}
+function goStudyProgress() {
+  const s = document.getElementById("sp_study").value;
+  if (!s) { alert("Pick a study"); return; }
+  openInNewTab(`/print/study-progress/${s}`);
+}
+function goBlankForm() {
+  const s = document.getElementById("bf_study").value;
+  openInNewTab(`/print/blank-form${s ? "?study_id=" + s : ""}`);
+}
+function goStatisticsReport() {
+  const s = document.getElementById("sr_study").value;
+  const p = document.getElementById("sr_param").value;
+  if (!s || !p) { alert("Pick study and parameter"); return; }
+  openInNewTab(`/print/statistics/${s}?parameter_id=${p}`);
+}
+</script>
+
+{% endblock %}

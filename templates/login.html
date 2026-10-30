@@ -1,0 +1,247 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="{{ app_settings.get('ui_primary', '#059669') }}">
+<title>{{ app_settings.get('login_title', 'Sign in') }} · {{ app_name }}</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/pro.css') }}">
+{% if app_settings.get('favicon_url') %}
+<link rel="icon" href="{{ app_settings.get('favicon_url') }}">
+{% endif %}
+<style>
+:root {
+  --primary: {{ app_settings.get('ui_primary', '#059669') }};
+  --accent:  {{ app_settings.get('ui_accent', '#14b8a6') }};
+  --login-bg: {{ app_settings.get('login_bg', '#f7f9fb') }};
+  --login-bg-grad: {% if app_settings.get('login_bg_gradient') %}{{ app_settings.get('login_bg_gradient') }}{% else %}none{% endif %};
+}
+body.login-page {
+  background: var(--login-bg) !important;
+  {% if app_settings.get('login_bg_gradient') %}
+  background: {{ app_settings.get('login_bg_gradient') }} !important;
+  background-attachment: fixed !important;
+  background-size: cover !important;
+  {% endif %}
+}
+.btn.primary { background: var(--primary) !important; border-color: var(--primary) !important; }
+.btn.primary:hover { filter: brightness(0.94); }
+a { color: var(--primary); }
+
+.login-foot {
+  text-align: center;
+  margin-top: 22px;
+  font-size: 11px;
+  color: #94a3b8;
+  letter-spacing: .03em;
+}
+
+.login-foot {
+  text-align: center;
+  margin-top: 26px;
+  font-size: 11px;
+  color: #94a3b8;
+  opacity: 0.55;
+  letter-spacing: 0.02em;
+}
+</style>
+<link rel="stylesheet" href="/theme.css?v={{ range(1000000, 9999999) | random }}">
+</head>
+<body class="login-page">
+<div class="login-card">
+
+  <div class="brand center">
+    {% if app_settings.get('login_logo_url') %}
+      <img src="{{ app_settings.get('login_logo_url') }}" alt="Logo"
+           style="max-height:96px;max-width:220px;width:auto;height:auto;object-fit:contain;border-radius:12px">
+    {% elif app_settings.get('brand_logo_url') %}
+      <img src="{{ app_settings.get('brand_logo_url') }}" alt="Logo"
+           style="max-height:96px;max-width:220px;width:auto;height:auto;object-fit:contain;border-radius:12px">
+    {% else %}
+      <span class="brandmark lg">{{ app_settings.get('brand_mark_value', '✚') }}</span>
+    {% endif %}
+    <div>
+      <b>{{ app_name }}</b>
+      <small>{{ app_tagline }}</small>
+    </div>
+  </div>
+
+  <h1>{{ app_settings.get('login_title', 'Sign in') }}</h1>
+  <p class="muted">{{ app_settings.get('login_subtitle', 'Secure access to your research workspace.') }}</p>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat,msg in msgs %}<div class="alert {{ cat }}">{{ msg }}</div>{% endfor %}
+  {% endwith %}
+
+  <form method="post" id="pw-form">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <label>Username
+      <input name="username" autocomplete="username" required autofocus>
+    </label>
+    <label>Password
+      <input type="password" name="password" autocomplete="current-password" required>
+    </label>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0 14px">
+      <label class="check" style="margin:0">
+        <input type="checkbox" name="remember" checked>
+        <span>Remember {{ app_settings.get('remember_days', '30') }} days</span>
+      </label>
+      <a href="{{ url_for('forgot_password') }}" style="font-size:12px">Forgot password?</a>
+    </div>
+    <button class="btn primary wide" type="submit">Sign in</button>
+  </form>
+
+  <div id="fp-section" style="display:none;margin-top:18px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="flex:1;height:1px;background:#e2e8f0"></div>
+      <span style="font-size:11px;font-weight:800;letter-spacing:.08em;
+                   text-transform:uppercase;color:#94a3b8">or</span>
+      <div style="flex:1;height:1px;background:#e2e8f0"></div>
+    </div>
+    <button type="button" id="btn-fp" class="btn wide"
+            style="display:inline-flex;align-items:center;justify-content:center;gap:10px;
+                   padding:12px;font-weight:700">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+           fill="none" stroke="#0f766e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
+        <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
+        <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
+        <path d="M2 12a10 10 0 0 1 18-6"/>
+        <path d="M2 16h.01"/>
+        <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
+        <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
+        <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
+        <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
+      </svg>
+      Sign in with fingerprint
+    </button>
+    <p id="fp-status" class="tiny" style="margin-top:10px;text-align:center;color:var(--muted)"></p>
+  </div>
+
+  <div id="fp-hint" style="display:none;margin-top:16px;padding:10px 12px;background:#fffbeb;
+              border:1px solid #fde68a;border-radius:10px;font-size:12px;color:#78350f;
+              text-align:center;line-height:1.5">
+    💡 <b>Fingerprint is available at</b><br>
+    <a id="fp-hint-link" href="#" style="color:#0f766e;font-weight:700;word-break:break-all">
+      http://localhost:5000/login
+    </a>
+  </div>
+
+</div>
+
+<script>
+function b64uToBuf(s) {
+  s = s.replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  const bin = atob(s);
+  const buf = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+  return buf.buffer;
+}
+function bufToB64u(buf) {
+  const bytes = new Uint8Array(buf);
+  let s = "";
+  for (let i = 0; i < bytes.byteLength; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+const host = location.hostname;
+const onLocalhost = (host === "localhost" || host === "127.0.0.1");
+if (onLocalhost) {
+  if (window.PublicKeyCredential) {
+    document.getElementById("fp-section").style.display = "block";
+  }
+} else {
+  const hint = document.getElementById("fp-hint");
+  const link = document.getElementById("fp-hint-link");
+  if (hint && link) {
+    const port = location.port ? ":" + location.port : "";
+    link.textContent = "http://localhost" + port + "/login";
+    link.href = "http://localhost" + port + "/login";
+    hint.style.display = "block";
+  }
+}
+const fpBtn = document.getElementById("btn-fp");
+if (fpBtn) {
+  fpBtn.addEventListener("click", async () => {
+    const status = document.getElementById("fp-status");
+    status.style.color = "#0f766e";
+    status.textContent = "Contacting server…";
+    fpBtn.disabled = true;
+    try {
+      const r1 = await fetch("/webauthn/login/begin", {
+        method: "POST", headers: { "Accept": "application/json" }
+      });
+      const t1 = await r1.text();
+      let opt;
+      try { opt = JSON.parse(t1); }
+      catch (e) {
+        status.style.color = "#dc2626";
+        status.textContent = "Server error (HTTP " + r1.status + ")";
+        fpBtn.disabled = false;
+        return;
+      }
+      if (!r1.ok || opt.error) {
+        status.style.color = "#dc2626";
+        status.textContent = opt.error || ("HTTP " + r1.status);
+        fpBtn.disabled = false;
+        return;
+      }
+      opt.challenge = b64uToBuf(opt.challenge);
+      status.textContent = "Waiting for fingerprint…";
+      let cred;
+      try {
+        cred = await navigator.credentials.get({ publicKey: opt });
+      } catch (e) {
+        status.style.color = "#dc2626";
+        status.textContent = "Cancelled or no credential found.";
+        fpBtn.disabled = false;
+        return;
+      }
+      if (!cred) {
+        status.style.color = "#dc2626";
+        status.textContent = "Cancelled.";
+        fpBtn.disabled = false;
+        return;
+      }
+      const body = {
+        id: cred.id,
+        rawId: bufToB64u(cred.rawId),
+        type: cred.type,
+        response: {
+          authenticatorData: bufToB64u(cred.response.authenticatorData),
+          clientDataJSON: bufToB64u(cred.response.clientDataJSON),
+          signature: bufToB64u(cred.response.signature),
+          userHandle: cred.response.userHandle ? bufToB64u(cred.response.userHandle) : null,
+        },
+      };
+      const r2 = await fetch("/webauthn/login/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const t2 = await r2.text();
+      let res;
+      try { res = JSON.parse(t2); }
+      catch (e) {
+        status.style.color = "#dc2626";
+        status.textContent = "Server error (HTTP " + r2.status + ")";
+        fpBtn.disabled = false;
+        return;
+      }
+      if (res.ok) {
+        status.textContent = "Success — redirecting…";
+        window.location = res.redirect;
+      } else {
+        status.style.color = "#dc2626";
+        status.textContent = res.error || "Fingerprint login failed.";
+        fpBtn.disabled = false;
+      }
+    } catch (e) {
+      status.style.color = "#dc2626";
+      status.textContent = "Error: " + e.message;
+      fpBtn.disabled = false;
+    }
+  });
+}
+</script>
+
+
+<div class="login-foot">{{ app_settings.get('copyright', '© ' + app_name) }}</div>
+</body></html>

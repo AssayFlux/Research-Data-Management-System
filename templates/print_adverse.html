@@ -1,0 +1,35 @@
+{% from "_print_macros.html" import print_styles, print_header, print_footer, print_toolbar %}
+{% set cfg = print_cfg('default') %}
+<!doctype html><html><head><meta charset="utf-8">
+<title>Adverse events report</title>
+{{ print_styles(cfg) }}
+</head><body>
+{{ print_toolbar() }}
+<div class="cp-wrap">
+  {{ print_header(cfg, app_name) }}
+  <div class="cp-body">
+    <h2>Adverse events ({{ rows|length }})</h2>
+    <table>
+      <thead><tr><th>#</th><th>Study</th><th>Participant</th><th>Date</th>
+                 <th>Term</th><th>Severity</th><th>Outcome</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ r.study_code or '—' }}</td>
+          <td>{{ r.participant_code or '—' }}</td>
+          <td>{{ r.event_date or '—' }}</td>
+          <td>{{ r.term }}</td>
+          <td>{{ r.severity }}</td>
+          <td>{{ r.outcome }}</td>
+          <td>{% if r.resolved %}Resolved{% else %}Open{% endif %}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;color:#64748b">No events.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {{ print_footer(cfg) }}
+</div>
+</body></html>

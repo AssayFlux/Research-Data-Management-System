@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if row else 'New' }} adverse event · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>{{ 'Edit' if row else 'New' }} adverse event</h1></div>
+  <a class="btn" href="{{ url_for('adverse_list') }}">← Back</a>
+</div>
+
+<form class="card form-grid" method="post">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+  <label class="full">Participant
+    <select name="participant_id" required>
+      {% for p in participants %}
+      <option value="{{ p.id }}" {% if row and row.participant_id == p.id %}selected{% endif %}>
+        {{ p.study_code }} · {{ p.participant_code }}
+      </option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Event date
+    <input type="date" name="event_date" value="{{ row.event_date if row else '' }}">
+  </label>
+
+  <label>Severity
+    <select name="severity">
+      {% for s in ['Mild','Moderate','Severe','Life-threatening'] %}
+      <option {% if row and row.severity == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label class="full">Term (event description)
+    <input name="term" value="{{ row.term if row else '' }}" required>
+  </label>
+
+  <label>Causality (WHO scale)
+    <select name="causality">
+      {% for c in ['Certain','Probable','Possible','Unlikely','Conditional','Unassessable','Not assessed'] %}
+      <option {% if row and row.causality == c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Action taken
+    <select name="action_taken">
+      {% for a in ['None','Drug withdrawn','Dose reduced','Dose increased','Concomitant treatment','Hospitalisation'] %}
+      <option {% if row and row.action_taken == a %}selected{% endif %}>{{ a }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Serious?
+    <select name="serious">
+      <option value="0" {% if row and not row.serious %}selected{% endif %}>No</option>
+      <option value="1" {% if row and row.serious %}selected{% endif %}>Yes — SAE</option>
+    </select>
+  </label>
+
+  <label>Outcome
+    <select name="outcome">
+      {% for o in ['Ongoing','Resolved','Recovered with sequelae','Fatal'] %}
+      <option {% if row and row.outcome == o %}selected{% endif %}>{{ o }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label class="full">Notes
+    <textarea name="notes" rows="4">{{ row.notes if row else '' }}</textarea>
+  </label>
+
+  <div class="form-actions full">
+    <a class="btn" href="{{ url_for('adverse_list') }}">Cancel</a>
+    <button class="btn primary">Save</button>
+  </div>
+</form>
+
+{% endblock %}

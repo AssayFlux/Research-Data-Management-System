@@ -1,0 +1,26 @@
+{% from "_print_macros.html" import print_styles, print_header, print_footer, print_toolbar %}
+<!doctype html><html><head><meta charset="utf-8">
+<title>Print preview · {{ contexts[profile] if contexts is defined else profile }}</title>
+{{ print_styles(cfg) }}
+</head><body>
+{{ print_toolbar() }}
+<div class="cp-wrap">
+  {{ print_header(cfg, app_name) }}
+  <div class="cp-body">
+    <h2>Sample body</h2>
+    <p style="font-size:11px;color:#475569">
+      This is a live preview of your print layout. Real content (participant values,
+      study summary, records table) appears here when you print from any page.
+    </p>
+    <table>
+      <thead><tr><th>Parameter</th><th class="num">Value</th><th>Unit</th><th>Reference</th></tr></thead>
+      <tbody>
+        <tr><td>Fasting blood sugar</td><td class="num">92.0</td><td>mg/dL</td><td>70–100</td></tr>
+        <tr><td>HbA1c</td><td class="num">5.4</td><td>%</td><td>&lt; 5.7</td></tr>
+        <tr><td>Total cholesterol</td><td class="num">178.0</td><td>mg/dL</td><td>&lt; 200</td></tr>
+      </tbody>
+    </table>
+  </div>
+  {{ print_footer(cfg) }}
+</div>
+</body></html>

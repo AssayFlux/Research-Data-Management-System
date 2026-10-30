@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Criteria · {{ s.study_code }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div>
+    <h1>Criteria — {{ s.study_code }}</h1>
+    <p>{{ s.title }}</p>
+  </div>
+  <div style="display:flex;gap:8px">
+    <a class="btn" href="{{ url_for('criteria_landing') }}">← Studies</a>
+    <form method="post" action="{{ url_for('criteria_reclassify_all', sid=s.id) }}"
+          onsubmit="return confirm('Re-evaluate every participant in this study?')">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="btn primary">🔁 Reclassify all</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Add criterion</h2>
+  <form method="post" class="form-grid">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <label>Kind
+      <select name="kind" required>
+        {% for k, label, color in kinds %}<option value="{{ k }}">{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Name
+      <input name="name" placeholder="e.g. Age 18–45" required>
+    </label>
+    <label>Parameter
+      <select name="parameter_id">
+        <option value="">— (free-text rule) —</option>
+        {% for p in params %}
+        <option value="{{ p.id }}">{{ p.name }} ({{ p.code }}){% if p.unit %} · {{ p.unit }}{% endif %}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Operator
+      <select name="operator">
+        {% for op, label in operators %}<option value="{{ op }}">{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Value 1<input name="value1" placeholder="18"></label>
+    <label>Value 2 <small class="muted">(only for "between")</small><input name="value2" placeholder="45"></label>
+    <label>Description<textarea name="description" rows="2"></textarea></label>
+    <label>Sort order<input type="number" name="sort_order" value="0"></label>
+    <div class="form-actions full"><button class="btn primary">Add criterion</button></div>
+  </form>
+</div>
+
+{% for kind, label, color in kinds %}
+<div class="card" style="margin-top:12px;border-left:4px solid {{ color }}">
+  <h2 style="color:{{ color }}">{{ label }}</h2>
+  {% for r in by_kind[kind] %}
+  <div class="crit-row">
+    <div>
+      <b>{{ r.name }}</b>
+      {% if not r.active %}<span class="badge warning">disabled</span>{% endif %}
+      <div class="tiny muted">
+        {{ r.pname or '—' }} {{ r.operator }} {{ r.value1 }}{% if r.value2 %} – {{ r.value2 }}{% endif %}
+        {% if r.description %} · {{ r.description }}{% endif %}
+      </div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <form method="post" action="{{ url_for('criteria_toggle', cid=r.id) }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="btn sm">{% if r.active %}Disable{% else %}Enable{% endif %}</button>
+      </form>
+      <form method="post" action="{{ url_for('criteria_delete', cid=r.id) }}"
+            onsubmit="return confirm('Delete this criterion?')">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="btn sm danger">Delete</button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <p class="muted">No rules yet.</p>
+  {% endfor %}
+</div>
+{% endfor %}
+
+<div class="card" style="margin-top:12px">
+  <h2>How classification works</h2>
+  <ol style="margin:0;padding-left:20px;font-size:13px;color:var(--body);line-height:1.7">
+    <li>Every <b>inclusion</b> criterion must pass — if any fails → <span class="badge danger">Excluded</span>.</li>
+    <li>If any <b>exclusion</b> criterion passes → <span class="badge danger">Excluded</span>.</li>
+    <li>Then check <b>control</b> rules — if all pass → <span class="badge info">Control</span>.</li>
+    <li>Otherwise check <b>study</b> rules — if all pass → <span class="badge" style="background:#ede9fe;color:#7c3aed">Study</span>.</li>
+    <li>Otherwise → <span class="badge warning">Undetermined</span>.</li>
+  </ol>
+</div>
+
+<style>
+.crit-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;
+  border-bottom:1px solid #f1f5f9}
+.crit-row:last-child{border-bottom:0}
+</style>
+{% endblock %}

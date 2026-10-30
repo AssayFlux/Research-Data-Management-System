@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}{{ active.data.title }} · Learn{% endblock %}
+{% block content %}
+
+<div class="learn-page">
+
+  <div class="learn-hero">
+    <div class="learn-hero-icon">{{ icon('book-open', 34, '#ffffff', 1.75) }}</div>
+    <div>
+      <h1>{{ active.data.title }}</h1>
+      <p>{{ active.data.subtitle }}</p>
+    </div>
+  </div>
+
+  <nav class="learn-tabs">
+    {% for t in tabs %}
+    <a href="/learn/{{ t.id }}" class="learn-tab {% if t.id == active.id %}active{% endif %}">
+      {{ icon(t.icon, 15, '#0f766e' if t.id == active.id else '#94a3b8', 2) }}
+      <span>{{ t.label }}</span>
+    </a>
+    {% endfor %}
+  </nav>
+
+  <div class="learn-content">
+    {% for section in active.data.sections %}
+    <div class="learn-section">
+      <div class="learn-section-head">
+        <span class="learn-section-ic">{{ icon('book-open', 18, '#0f766e', 1.9) }}</span>
+        <h2>{{ section.title }}</h2>
+      </div>
+
+      <div class="learn-items">
+        {% for item in section['items'] %}
+        <div class="learn-item">
+          <div class="learn-item-title">{{ item.title }}</div>
+          <div class="learn-item-body">{{ item.body }}</div>
+
+          {% if item.route %}
+          <div class="learn-item-actions">
+            <a class="learn-btn" href="{{ item.route }}">
+              {{ item.route_label or 'Open' }}
+            </a>
+          </div>
+          {% endif %}
+
+          {% if item.ext %}
+          <div class="learn-ext">
+            <div class="learn-ext-label">External links</div>
+            {% for label, url in item.ext %}
+            <a class="learn-ext-link" href="{{ url }}" target="_blank" rel="noopener">
+              {{ label }}
+            </a>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="learn-footer-note">
+    Links open external sites. Your data never leaves this device.
+  </div>
+
+</div>
+
+{% endblock %}

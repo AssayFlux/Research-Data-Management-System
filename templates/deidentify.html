@@ -1,0 +1,35 @@
+{% extends "base.html" %}{% block title %}De-identified export · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>De-identified export</h1>
+  <p>Replace participant codes with HMAC hashes. GDPR / HIPAA-style.</p></div>
+</div>
+
+<form method="post" class="card narrow">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <label>Study
+    <select name="study_id">
+      <option value="">All studies</option>
+      {% for s in studies %}<option value="{{ s.id }}">{{ s.study_code }} — {{ s.title }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Format
+    <select name="fmt">
+      <option value="csv">CSV</option>
+      <option value="xlsx">Excel</option>
+      <option value="pdf">PDF</option>
+    </select>
+  </label>
+  <label class="check"><input type="checkbox" name="strip_demographic"><span>Strip demographic columns (age, sex)</span></label>
+  <label class="check"><input type="checkbox" name="shift_dates"><span>Shift dates per subject (±30 days, stable)</span></label>
+  <label>Salt (leave blank for random)
+    <input name="salt" placeholder="keep this safe to re-link later">
+  </label>
+  <div class="form-actions"><button class="btn primary">Export de-identified</button></div>
+</form>
+
+<div class="alert info" style="margin-top:12px">
+  <b>Note:</b> Subject codes are hashed with HMAC-SHA256. Save the salt from the export —
+  without it, the codes cannot be matched back to real participants.
+</div>
+{% endblock %}

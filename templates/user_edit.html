@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% from "_avatar.html" import user_avatar %}
+{% block title %}Edit {{ u.username }} · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>Edit user</h1>
+    <p>Update account details, role and access.</p>
+  </div>
+  <a class="btn" href="{{ url_for('users_page') }}">← All users</a>
+</div>
+
+<div class="grid2">
+
+  {# ─────── LEFT: profile card ─────── #}
+  <div class="card" style="text-align:center">
+    <div style="margin:18px 0">{{ user_avatar(u, 100, ring=True) }}</div>
+    <h2 style="margin:8px 0 2px">{{ u.display_name or u.username }}</h2>
+    <p class="tiny muted" style="margin:0">@{{ u.username }}</p>
+    <p class="tiny muted" style="margin:2px 0 0">{{ u.role }}</p>
+
+    <div class="status-list" style="margin-top:16px;text-align:left">
+      <div>Status <b>{% if u.active %}Active{% else %}Disabled{% endif %}</b></div>
+      <div>Created <b>{{ u.created_at[:10] if u.created_at else '—' }}</b></div>
+      <div>Last login <b>{{ u.last_login or '—' }}</b></div>
+    </div>
+
+    {% if u.id == current_user.id %}
+    <div class="alert info" style="margin-top:14px;text-align:left">
+      This is your own account.
+    </div>
+    {% endif %}
+  </div>
+
+  {# ─────── RIGHT: form + actions ─────── #}
+  <div>
+    <form class="card" method="post">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <h2>Account details</h2>
+
+      <div class="form-grid">
+        <label>Username
+          <input name="username" value="{{ u.username }}" required>
+        </label>
+        <label>Display name
+          <input name="display_name" value="{{ u.display_name or '' }}">
+        </label>
+        <label class="full">Email
+          <input name="email" type="email" value="{{ u.email or '' }}"
+                 placeholder="For password reset links">
+        </label>
+        <label>Role
+          <select name="role">
+            {% for r in ('ADMIN','RESEARCHER','VIEWER') %}
+            <option value="{{ r }}" {% if u.role == r %}selected{% endif %}>
+              {{ r }}{% if r == 'ADMIN' %} — full control
+              {% elif r == 'RESEARCHER' %} — study access
+              {% else %} — read-only{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+
+      {% if u.id != current_user.id %}
+      <input type="hidden" name="active" value="0">
+      <label class="switch-row" style="margin-top:14px">
+        <input type="checkbox" name="active" value="1" {% if u.active %}checked{% endif %}>
+        <span class="switch"></span>
+        <span class="switch-label">
+          <b>Account active</b>
+          <small class="muted">Disabled users cannot sign in.</small>
+        </span>
+      </label>
+      {% else %}
+      <input type="hidden" name="active" value="1">
+      {% endif %}
+
+      <div class="form-actions" style="margin-top:16px">
+        <a class="btn" href="{{ url_for('users_page') }}">Cancel</a>
+        <button class="btn primary">Save changes</button>
+      </div>
+    </form>
+
+    {# ─────── Password reset ─────── #}
+    <div class="card" style="margin-top:12px">
+      <h2>Reset password</h2>
+      <p class="muted">Set a new password directly — the user will be signed out.</p>
+      <form method="post" action="{{ url_for('user_reset_password', uid=u.id) }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="back" value="edit">
+        <div class="form-grid">
+          <label class="full">New password
+            <input type="password" name="new_password" minlength="8" required
+                   placeholder="Min 8 characters">
+          </label>
+        </div>
+        <div class="form-actions" style="margin-top:10px">
+          <button class="btn primary">Set new password</button>
+          <button class="btn" formaction="{{ url_for('user_generate_reset_link', uid=u.id) }}"
+                  formmethod="post">
+            🔑 Generate reset link instead
+          </button>
+        </div>
+      </form>
+    </div>
+
+    {# ─────── Danger zone ─────── #}
+    {% if u.id != current_user.id %}
+    <div class="card" style="margin-top:12px;border-color:#fecaca">
+      <h2 style="color:#dc2626">Danger zone</h2>
+      <p class="muted">These actions cannot be undone.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <form method="post" action="{{ url_for('user_toggle', uid=u.id) }}">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn">{% if u.active %}🚫 Disable account{% else %}✅ Enable account{% endif %}</button>
+        </form>
+        <form method="post" action="{{ url_for('user_delete', uid=u.id) }}"
+              onsubmit="return confirm('Permanently delete {{ u.username }}? This cannot be undone.')">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn danger">🗑 Delete user</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+{% endblock %}

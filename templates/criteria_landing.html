@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Criteria · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Criteria &amp; classification</h1>
+  <p>Define inclusion / exclusion rules and automatic grouping per study.</p></div>
+</div>
+<div class="card">
+  <h2>Choose a study</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:10px">
+    {% for s in studies %}
+    <a class="criteria-card" href="{{ url_for('criteria_for_study', sid=s.id) }}">
+      <b>{{ s.study_code }}</b>
+      <span>{{ s.title }}</span>
+    </a>
+    {% else %}
+    <p class="muted">No studies yet. <a href="{{ url_for('study_new') }}">Create one</a>.</p>
+    {% endfor %}
+  </div>
+</div>
+<style>
+.criteria-card{display:flex;flex-direction:column;gap:4px;padding:14px;border:1px solid var(--border);
+  border-radius:10px;text-decoration:none;color:inherit;transition:.12s}
+.criteria-card:hover{border-color:var(--primary);background:#f0fdf4;text-decoration:none}
+.criteria-card b{font-family:var(--mono);color:var(--primary);font-size:13px}
+.criteria-card span{font-size:13px;color:var(--body)}
+</style>
+{% endblock %}

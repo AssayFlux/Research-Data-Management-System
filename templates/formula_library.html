@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Medical formula library · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>Medical formula library</h1>
+    <p>{{ total }} formulas across {{ categories|length }} categories — calculate instantly or install into your project.</p>
+  </div>
+  <a class="btn" href="{{ url_for('formulas_list') }}">← My formulas</a>
+</div>
+
+{# ═══════════ SEARCH + FILTER ═══════════ #}
+<form class="card lib-filter" method="get">
+  <div class="lib-filter-grid">
+    <label>Search
+      <input name="q" value="{{ q }}" placeholder="BMI, HOMA-IR, FIB-4, NLR…">
+    </label>
+    <label>Category
+      <select name="cat">
+        <option value="">All categories</option>
+        {% for c in categories %}
+        <option value="{{ c }}" {% if cat==c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <div class="lib-filter-actions">
+      <button class="btn primary">Search</button>
+      {% if q or cat %}<a class="btn" href="{{ url_for('formula_library_page') }}">Clear</a>{% endif %}
+    </div>
+  </div>
+</form>
+
+{# ═══════════ CATEGORY TABS ═══════════ #}
+<div class="lib-tabs">
+  <a href="{{ url_for('formula_library_page') }}" class="{% if not cat and not q %}active{% endif %}">All ({{ total }})</a>
+  {% for c in categories %}
+  <a href="?cat={{ c }}" class="{% if cat==c %}active{% endif %}">{{ c }}</a>
+  {% endfor %}
+</div>
+
+{# ═══════════ CARD GRID ═══════════ #}
+<div class="lib-grid">
+  {% for f in items %}
+  <a class="lib-card flib-card" href="{{ url_for('formula_library_detail', fid=f.id) }}">
+
+    {# ── Header: name + abbr code ── #}
+    <div class="lib-head">
+      <div class="lib-head-left">
+        <div class="lib-name">{{ f.name }}</div>
+        <div class="lib-meta">{{ f.category }}</div>
+      </div>
+      <div class="lib-head-right">
+        <span class="lib-code">{{ f.abbr }}</span>
+      </div>
+    </div>
+
+    {# ── Description ── #}
+    {% if f.description %}
+    <div class="flib-desc">{{ f.description }}</div>
+    {% endif %}
+
+    {# ── Labelled field grid — colour coded ── #}
+    <div class="lib-fields">
+
+      {# Output unit #}
+      {% if f.unit and f.unit != '—' %}
+      <div class="lib-field lib-field-unit">
+        <span class="lf-label">Unit</span>
+        <span class="lf-value">{{ f.unit }}</span>
+      </div>
+      {% endif %}
+
+      {# Reference range #}
+      {% if f.reference and f.reference != '—' %}
+      <div class="lib-field lib-field-ref">
+        <span class="lf-label">Reference</span>
+        <span class="lf-value">{{ f.reference }}</span>
+      </div>
+      {% endif %}
+
+      {# Inputs count #}
+      {% if f.inputs %}
+      <div class="lib-field lib-field-type">
+        <span class="lf-label">Inputs</span>
+        <span class="lf-value">{{ f.inputs|length }} value{{ 's' if f.inputs|length != 1 else '' }}</span>
+      </div>
+      {% endif %}
+
+    </div>
+
+    {# ── Footer ── #}
+    <div class="lib-foot">
+      <span class="lib-more">Open calculator →</span>
+    </div>
+
+  </a>
+  {% else %}
+  <div class="card" style="grid-column:1/-1;text-align:center;padding:40px">
+    <p class="muted" style="margin:0">No formulas match your search.</p>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

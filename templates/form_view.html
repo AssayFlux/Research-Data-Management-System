@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% block title %}{{ form.name }} · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+<div><h1>{{ form.name }}</h1>
+<p>{{ form.description or 'No description' }}
+{% if form.study_code %} · Study: {{ form.study_code }} — {{ form.study_title }}{% endif %}</p></div>
+<a class="btn" href="{{ url_for('forms_list') }}">← Back to forms</a>
+</div>
+<div class="card">
+<h2>Fields ({{ fields|length }})</h2>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+{% for p in fields %}
+<div style="border:1px dashed #cbd5e1;border-radius:10px;padding:12px">
+<div style="font-weight:700">{{ loop.index }}. {{ p.name }}</div>
+<small class="muted">{{ p.code }} · {{ p.data_type }}{% if p.unit %} · {{ p.unit }}{% endif %}</small>
+</div>
+{% else %}<p class="muted">This form has no fields.</p>{% endfor %}
+</div>
+</div>
+{% endblock %}

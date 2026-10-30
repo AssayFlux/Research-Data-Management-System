@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Query builder · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Ad-hoc query</h1><p>Find participants by parameter values.</p></div>
+</div>
+
+<form method="post" class="card">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <div class="form-grid">
+    <label>Study
+      <select name="study_id">
+        <option value="">All studies</option>
+        {% for s in studies %}<option value="{{ s.id }}">{{ s.study_code }} — {{ s.title }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Combine rules
+      <select name="join">
+        <option value="AND">ALL must be true (AND)</option>
+        <option value="OR">ANY can be true (OR)</option>
+      </select>
+    </label>
+  </div>
+
+  {% for i in [1,2,3] %}
+  <h3 class="sub" style="margin-top:16px">Rule {{ i }}</h3>
+  <div class="form-grid">
+    <label>Parameter
+      <select name="p{{ i }}_id">
+        <option value="">— none —</option>
+        {% for p in params %}<option value="{{ p.id }}">{{ p.category }} · {{ p.name }} ({{ p.code }})</option>{% endfor %}
+      </select>
+    </label>
+    <label>Operator
+      <select name="p{{ i }}_op">
+        {% for op, label in operators %}<option value="{{ op }}">{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Value 1<input name="p{{ i }}_v1"></label>
+    <label>Value 2 (for between)<input name="p{{ i }}_v2"></label>
+  </div>
+  {% endfor %}
+
+  <div class="form-actions" style="margin-top:16px">
+    <button class="btn primary">Run query</button>
+  </div>
+</form>
+
+{% if results is not none %}
+<div class="card" style="margin-top:12px">
+  <div class="cardhead">
+    <h2>Results — {{ match_count }} participant(s)</h2>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Code</th><th>Study</th><th>Classification</th><th>Group</th><th></th></tr></thead>
+      <tbody>
+        {% for r in results %}
+        <tr>
+          <td><b>{{ r.participant_code }}</b></td>
+          <td>{{ r.study_code }}</td>
+          <td>{{ r.classification or 'Undetermined' }}</td>
+          <td>{{ r.group_type }}</td>
+          <td><a href="{{ url_for('participant_detail', pid=r.id) }}">Open</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="muted" style="text-align:center;padding:24px">No matches.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

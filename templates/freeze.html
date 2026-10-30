@@ -1,0 +1,53 @@
+{% extends "base.html" %}{% block title %}Freeze · {{ s.study_code }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Data freeze — {{ s.study_code }}</h1>
+  <p>{{ s.title }}</p></div>
+  <a class="btn" href="{{ url_for('studies_list') }}">← Studies</a>
+</div>
+
+{% if s.frozen %}
+<div class="alert warning">
+  🔒 <b>This study is frozen</b> since {{ s.frozen_at }}.
+  Reason: {{ s.freeze_reason or '—' }}.
+  {% if s.cutoff_date %}Cut-off: {{ s.cutoff_date }}.{% endif %}
+</div>
+{% else %}
+<div class="alert success">✓ Study is active — edits allowed.</div>
+{% endif %}
+
+<div class="grid2">
+  <div class="card">
+    <h2>{% if s.frozen %}Unfreeze{% else %}Freeze{% endif %} study</h2>
+    <form method="post">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="{{ 'unfreeze' if s.frozen else 'freeze' }}">
+      <label>Reason
+        <textarea name="reason" rows="3" required></textarea>
+      </label>
+      {% if not s.frozen %}
+      <label>Cut-off date (optional)
+        <input type="date" name="cutoff_date">
+      </label>
+      {% endif %}
+      <div class="form-actions">
+        <button class="btn {{ 'danger' if s.frozen else 'primary' }}">
+          {% if s.frozen %}Unfreeze{% else %}Freeze{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Freeze log</h2>
+    {% for e in log %}
+    <div style="padding:8px 0;border-bottom:1px solid #f1f5f9">
+      <b>{{ e.action }}</b> · {{ e.username or '—' }}
+      <div class="tiny muted">{{ e.created_at }} · {{ e.reason }}</div>
+    </div>
+    {% else %}
+    <p class="muted">No events yet.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

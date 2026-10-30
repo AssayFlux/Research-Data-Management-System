@@ -1,0 +1,132 @@
+{% from "_print_macros.html" import print_styles, print_header, print_footer, print_toolbar %}
+{% set cfg = print_cfg('analysis') %}
+<!doctype html><html><head><meta charset="utf-8">
+<title>Analysis — {{ p.name }}</title>
+{{ print_styles(cfg) }}
+</head><body>
+{{ print_toolbar() }}
+<div class="cp-wrap">
+  {{ print_header(cfg, app_name) }}
+
+  <div class="cp-body">
+    <h2>{% if s %}{{ s.study_code }} — {% endif %}{{ p.name }} analysis report</h2>
+    {% if filters is defined %}
+    <div style="font-size:10.5px;color:#475569;margin:4px 0 10px">
+      <b>Classification filter:</b> {{ filters.classification }} ·
+      <b>Records mode:</b> {{ {'latest':'Latest per participant','first':'First per participant','all':'All records'}.get(filters.mode, filters.mode) }}
+    </div>
+    {% endif %}
+    {% if computed_notes %}
+    <div style="border:1px dashed #cbd5e1;background:#f8fafc;padding:8px 10px;
+                border-radius:6px;font-size:10px;color:#475569;margin:6px 0 12px">
+      <b style="color:#0f766e">Computed parameter</b> — this value is auto-calculated from:<br>
+      {% for f in computed_notes %}
+      <div style="margin-top:3px"><code>{{ f.expression }}</code>
+        {% if f.inputs %}(inputs: {{ f.inputs|join(', ') }}){% endif %}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <h2>Parameter</h2>
+    <div class="grid">
+      <div><b>Name</b>{{ p.name }}</div>
+      <div><b>Code</b>{{ p.code }}</div>
+      <div><b>Category</b>{{ p.category }}</div>
+      <div><b>Unit</b>{{ p.unit or '—' }}</div>
+    </div>
+
+    <h2>Descriptive statistics (N = {{ n }})</h2>
+    {% if desc.n %}
+    <table>
+      <thead><tr>
+        <th class="num">N</th><th class="num">Mean</th><th class="num">SD</th>
+        <th class="num">SE</th><th class="num">Median</th>
+        <th class="num">Q1</th><th class="num">Q3</th><th class="num">IQR</th>
+        <th class="num">Min</th><th class="num">Max</th>
+        <th class="num">Skew</th><th class="num">Kurt</th>
+        <th class="num">95% CI</th>
+      </tr></thead>
+      <tbody><tr>
+        <td class="num">{{ desc.n }}</td><td class="num">{{ desc.mean }}</td>
+        <td class="num">{{ desc.sd }}</td><td class="num">{{ desc.se }}</td>
+        <td class="num">{{ desc.median }}</td><td class="num">{{ desc.q1 }}</td>
+        <td class="num">{{ desc.q3 }}</td><td class="num">{{ desc.iqr }}</td>
+        <td class="num">{{ desc.min }}</td><td class="num">{{ desc.max }}</td>
+        <td class="num">{{ desc.skewness }}</td><td class="num">{{ desc.kurtosis }}</td>
+        <td class="num">{{ desc.ci95_low }} – {{ desc.ci95_high }}</td>
+      </tr></tbody>
+    </table>
+    {% else %}
+    <p style="color:#64748b">No numeric values.</p>
+    {% endif %}
+
+    {% if norm.available %}
+    <h2>Normality</h2>
+    <table>
+      <tbody>
+        {% if norm.shapiro_p is defined %}
+        <tr><th style="width:30%">Shapiro-Wilk</th>
+            <td>W = {{ norm.shapiro_statistic }}, p = {{ norm.shapiro_p }} — <b>{{ norm.shapiro_verdict }}</b></td></tr>
+        {% endif %}
+        {% if norm.dagostino_p is defined %}
+        <tr><th>D'Agostino K²</th>
+            <td>K² = {{ norm.dagostino_statistic }}, p = {{ norm.dagostino_p }} — <b>{{ norm.dagostino_verdict }}</b></td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if chart_hist or chart_box or chart_groups %}
+    <h2>Charts</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      {% if chart_hist %}<img src="{{ chart_hist }}" style="max-width:100%">{% endif %}
+      {% if chart_box %}<img src="{{ chart_box }}" style="max-width:100%">{% endif %}
+      {% if chart_groups %}<img src="{{ chart_groups }}" style="max-width:100%">{% endif %}
+    </div>
+    {% endif %}
+
+    {% if groups %}
+    <h2>Values by group</h2>
+    <table>
+      <thead><tr><th>Group</th><th class="num">N</th>
+        <th class="num">Mean</th><th class="num">SD</th>
+        <th class="num">Median</th><th class="num">IQR</th></tr></thead>
+      <tbody>
+        {% for gname, vals in groups.items() %}
+        <tr>
+          <td><b>{{ gname }}</b></td>
+          <td class="num">{{ vals|length }}</td>
+          <td class="num">{{ (vals|sum / vals|length)|round(4) }}</td>
+          <td class="num">—</td>
+          <td class="num">—</td>
+          <td class="num">—</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if comparison and comparison.test %}
+    <h2>Group comparison</h2>
+    <table>
+      <tbody>
+        <tr><th style="width:30%">Test</th><td><b>{{ comparison.test }}</b></td></tr>
+        <tr><th>Group 1</th><td>{{ comparison.group_a }} (n = {{ comparison.n_a }})</td></tr>
+        <tr><th>Group 2</th><td>{{ comparison.group_b }} (n = {{ comparison.n_b }})</td></tr>
+        <tr><th>Statistic</th><td>{{ comparison.statistic }}</td></tr>
+        <tr><th>p-value</th><td><b>{{ comparison.p }}</b>
+          {% if comparison.p < 0.05 %} (significant){% else %} (not significant){% endif %}</td></tr>
+        {% if comparison.cohens_d is defined %}
+        <tr><th>Cohen's d</th><td>{{ comparison.cohens_d }} ({{ comparison.effect_size }})</td></tr>
+        {% endif %}
+        {% if comparison.selection_reason %}
+        <tr><th>Why this test</th><td>{{ comparison.selection_reason }}</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+
+  {{ print_footer(cfg) }}
+</div>
+</body></html>

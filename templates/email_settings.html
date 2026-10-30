@@ -1,0 +1,67 @@
+{% extends "base.html" %}{% block title %}Email settings · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Email settings</h1>
+  <p>{% if configured %}✓ SMTP configured{% else %}⚠ SMTP not configured yet{% endif %}</p></div>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <h2>SMTP configuration</h2>
+    <form method="post">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="save">
+      <label>SMTP host<input name="smtp_host" value="{{ s.get('smtp_host','') }}" placeholder="smtp.gmail.com"></label>
+      <label>Port<input name="smtp_port" value="{{ s.get('smtp_port','587') }}"></label>
+      <label>Username<input name="smtp_user" value="{{ s.get('smtp_user','') }}"></label>
+      <label>Password<input type="password" name="smtp_pass" value="{{ s.get('smtp_pass','') }}"></label>
+      <label>From address<input name="smtp_from" value="{{ s.get('smtp_from','') }}"></label>
+      <label class="check"><input type="checkbox" name="smtp_tls" value="1" {% if s.get('smtp_tls','1')=='1' %}checked{% endif %}><span>Use STARTTLS (port 587)</span></label>
+      <div class="form-actions"><button class="btn primary">Save</button></div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Test &amp; queue</h2>
+    <form method="post" style="margin-bottom:14px">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="test">
+      <label>Send test email to<input name="test_to" type="email" placeholder="you@example.com"></label>
+      <button class="btn">Send test</button>
+    </form>
+    <form method="post">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="flush">
+      <button class="btn primary">📤 Flush pending queue</button>
+    </form>
+    <p class="tiny muted" style="margin-top:12px">
+      Gmail users: use an <b>App Password</b> (not your normal password).
+      Google Account → Security → 2-Step → App passwords.
+    </p>
+  </div>
+</div>
+
+<div class="card table-wrap" style="margin-top:12px">
+  <h2>Recent queue (last 100)</h2>
+  <table>
+    <thead><tr><th>When</th><th>To</th><th>Subject</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      {% for q in queue %}
+      <tr>
+        <td><small>{{ q.created_at }}</small></td>
+        <td>{{ q.recipient }}</td>
+        <td>{{ q.subject }}</td>
+        <td><span class="badge {% if q.status=='sent' %}success{% elif q.status=='failed' %}danger{% endif %}">{{ q.status }}</span>
+          {% if q.error %}<div class="tiny muted">{{ q.error[:80] }}</div>{% endif %}</td>
+        <td>
+          <form method="post" action="{{ url_for('email_queue_delete', qid=q.id) }}">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="btn sm">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}<tr><td colspan="5" class="muted" style="text-align:center;padding:24px">Queue empty.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

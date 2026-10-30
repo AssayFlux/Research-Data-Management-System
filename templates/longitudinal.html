@@ -1,0 +1,94 @@
+{% extends "base.html" %}{% block title %}Longitudinal trends · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Longitudinal trends</h1>
+  <p>See how a parameter changes across visits per participant.</p></div>
+</div>
+
+<div class="card">
+  <div class="form-grid">
+    <label>Study
+      <select id="study_id">
+        <option value="">All studies</option>
+        {% for s in studies %}<option value="{{ s.id }}">{{ s.study_code }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Parameter
+      <select id="param_id">
+        {% for p in params %}<option value="{{ p.id }}">{{ p.category }} · {{ p.name }} ({{ p.code }})</option>{% endfor %}
+      </select>
+    </label>
+  </div>
+  <div class="form-actions" style="margin-top:10px">
+    <button class="btn primary" onclick="loadTrends()">Load trends</button>
+  </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+  <h2>Cohort mean per visit</h2>
+  <canvas id="cohortChart" height="90"></canvas>
+</div>
+
+<div class="card" style="margin-top:12px">
+  <h2 id="participants-title">Participants</h2>
+  <div id="participants-list" style="display:grid;gap:10px"></div>
+</div>
+
+<script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}"></script>
+<script>
+const CSRF = "{{ csrf_token() }}";
+let cohortChart = null;
+
+async function loadTrends() {
+  const body = new FormData();
+  body.append("_csrf", CSRF);
+  body.append("parameter_id", document.getElementById("param_id").value);
+  body.append("study_id", document.getElementById("study_id").value);
+  const r = await fetch("/longitudinal/data", { method: "POST", body });
+  const d = await r.json();
+  if (d.error) { alert(d.error); return; }
+
+  // Cohort mean
+  if (cohortChart) cohortChart.destroy();
+  const cm = d.cohort_mean || [];
+  cohortChart = new Chart(document.getElementById("cohortChart"), {
+    type: "line",
+    data: { labels: cm.map(x => `Visit ${x.visit} (n=${x.n})`),
+            datasets: [{ label: "Cohort mean", data: cm.map(x => x.mean),
+                         borderColor: "#059669", backgroundColor: "rgba(5,150,105,.15)",
+                         tension: .25, fill: true }] },
+    options: { responsive: true, plugins: { legend: { display: false } },
+               scales: { y: { beginAtZero: false } } }
+  });
+
+  // Participant list
+  document.getElementById("participants-title").textContent =
+    `Participants (${d.n_participants}) · ${d.n_records} records`;
+  const list = document.getElementById("participants-list");
+  list.innerHTML = "";
+  const colorMap = { Control:"#2563eb", Study:"#7c3aed", Excluded:"#dc2626", Undetermined:"#d97706" };
+  Object.entries(d.series).forEach(([code, s]) => {
+    const color = colorMap[s.classification] || "#64748b";
+    const div = document.createElement("div");
+    div.style.cssText = "border:1px solid #e2e8f0;border-radius:10px;padding:12px";
+    const pts = s.points.map((p,i) => `${i+1}. ${p.x}: <b>${p.y}</b>`).join(" · ");
+    let trend = "";
+    if (s.trend && !s.trend.error) {
+      const slope = s.trend.slope;
+      const arrow = slope > 0 ? "▲" : slope < 0 ? "▼" : "→";
+      trend = ` <span style="color:${slope>0?'#059669':slope<0?'#dc2626':'#64748b'}">${arrow} slope ${slope.toFixed(4)}</span>`;
+    }
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><b style="font-family:var(--mono)">${code}</b>
+          <span class="badge" style="background:${color}22;color:${color}">${s.classification}</span>
+        </div>
+        <small class="muted">${s.descriptive.n} values · mean ${s.descriptive.mean}${trend}</small>
+      </div>
+      <div style="font-size:12px;color:var(--body);margin-top:6px">${pts}</div>`;
+    list.appendChild(div);
+  });
+}
+loadTrends();
+</script>
+{% endblock %}

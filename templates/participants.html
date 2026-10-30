@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}Participants · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>Participants</h1>
+    <p>Search, filter and manage enrolled participants.</p>
+  </div>
+  <a class="btn primary" href="{{ url_for('participant_new') }}">+ New participant</a>
+</div>
+
+{# ═══════════ FILTERS ═══════════ #}
+<form class="card part-filter" method="get">
+  <div class="part-filter-grid">
+    <label>Search
+      <input name="q" value="{{ request.args.get('q','') }}" placeholder="Participant code or group">
+    </label>
+    <label>Study
+      <select name="study_id">
+        <option value="">All studies</option>
+        {% for s in studies %}
+        <option value="{{ s.id }}" {% if request.args.get('study_id') == s.id|string %}selected{% endif %}>
+          {{ s.study_code }} — {{ s.title[:30] }}{% if s.title|length > 30 %}…{% endif %}
+        </option>
+        {% endfor %}
+      </select>
+    </label>
+    <div class="part-filter-actions">
+      <button class="btn primary">Filter</button>
+      {% if request.args.get('q') or request.args.get('study_id') %}
+      <a class="btn" href="{{ url_for('participants_list') }}">Clear</a>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+{# ═══════════ BULK ACTIONS ═══════════ #}
+<form method="post" action="{{ url_for('participants_bulk_action') }}" id="bulk-form">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+  <div class="card part-bulk">
+    <div class="part-bulk-head">
+      <b>Bulk action</b>
+      <span class="muted tiny">Select rows below → apply</span>
+    </div>
+    <div class="part-bulk-grid">
+      <label>Action
+        <select name="action">
+          <option value="reclassify">🔄 Re-evaluate classification</option>
+          <option value="classify">🎯 Set classification</option>
+          <option value="group">👥 Set group</option>
+          <option value="export">📤 Export selected (CSV)</option>
+          <option value="archive">🗑️ Archive selected</option>
+        </select>
+      </label>
+      <label>Classification
+        <select name="classification">
+          <option>Study</option><option>Control</option>
+          <option>Excluded</option><option>Undetermined</option>
+        </select>
+      </label>
+      <label>Group
+        <select name="group_type">
+          <option>Case</option><option>Control</option>
+          <option>Treatment</option><option>Placebo</option>
+          <option>Unclassified</option>
+        </select>
+      </label>
+      <button class="btn primary">Apply to selected</button>
+    </div>
+  </div>
+
+  {# ─────────── Empty state ─────────── #}
+  {% if not rows %}
+  <div class="card" style="text-align:center;padding:40px 20px">
+    <p class="muted" style="margin:0 0 12px">No participants yet.</p>
+    <a class="btn primary" href="{{ url_for('participant_new') }}">+ New participant</a>
+  </div>
+  {% else %}
+
+  {# ─────────── Desktop: table ─────────── #}
+  <div class="card table-wrap part-table-wrap">
+    <table class="part-table">
+      <thead>
+        <tr>
+          <th style="width:32px">
+            <input type="checkbox" class="part-check-all">
+          </th>
+          <th>Code</th>
+          <th>Study</th>
+          <th>Classification</th>
+          <th>Group</th>
+          <th>Consent</th>
+          <th>Visit</th>
+          <th class="num">Age</th>
+          <th style="text-align:right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in rows %}
+        <tr>
+          <td>
+            <input type="checkbox" name="pid" value="{{ p.id }}" class="part-row-check">
+          </td>
+          <td><a href="{{ url_for('participant_detail', pid=p.id) }}"><b>{{ p.participant_code }}</b></a></td>
+          <td>{{ p.study_code }}</td>
+          <td>
+            {% set cls = p.classification or 'Undetermined' %}
+            {% set c = {'Control':'#2563eb','Study':'#7c3aed','Excluded':'#dc2626','Undetermined':'#d97706'}.get(cls,'#64748b') %}
+            {% set b = {'Control':'#eff6ff','Study':'#ede9fe','Excluded':'#fef2f2','Undetermined':'#fffbeb'}.get(cls,'#f1f5f9') %}
+            <span style="display:inline-block;padding:2px 9px;border-radius:999px;
+                         font-size:11px;font-weight:700;background:{{ b }};color:{{ c }}">{{ cls }}</span>
+          </td>
+          <td><span class="badge">{{ p.group_type }}</span></td>
+          <td>{{ p.consent_status }}</td>
+          <td>{{ p.visit_date or '—' }}</td>
+          <td class="num">{{ p.age or '—' }}</td>
+          <td style="text-align:right;white-space:nowrap">
+            <a class="btn sm" href="{{ url_for('participant_edit', pid=p.id) }}" title="Edit">✏️</a>
+            <a class="btn sm" href="{{ url_for('data_new', pid=p.id) }}" title="Add data">➕</a>
+            <form method="post" action="{{ url_for('participant_archive', pid=p.id) }}"
+                  onsubmit="return confirm('Archive participant {{ p.participant_code }}?')"
+                  style="display:inline">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <button class="btn sm danger" title="Archive">🗑</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# ─────────── Mobile: cards ─────────── #}
+  <div class="part-cards">
+    {% for p in rows %}
+    <div class="part-card">
+      <div class="pc-head">
+        <input type="checkbox" name="pid" value="{{ p.id }}" class="part-row-check">
+        <div class="pc-info">
+          <a href="{{ url_for('participant_detail', pid=p.id) }}" class="pc-code">{{ p.participant_code }}</a>
+          <div class="pc-study">{{ p.study_code }}</div>
+        </div>
+        {% set cls = p.classification or 'Undetermined' %}
+        {% set c = {'Control':'#2563eb','Study':'#7c3aed','Excluded':'#dc2626','Undetermined':'#d97706'}.get(cls,'#64748b') %}
+        {% set b = {'Control':'#eff6ff','Study':'#ede9fe','Excluded':'#fef2f2','Undetermined':'#fffbeb'}.get(cls,'#f1f5f9') %}
+        <span style="padding:3px 10px;border-radius:999px;font-size:10.5px;font-weight:700;
+                     background:{{ b }};color:{{ c }}">{{ cls }}</span>
+      </div>
+
+      <div class="pc-grid">
+        <div><span>Group</span><b>{{ p.group_type }}</b></div>
+        <div><span>Consent</span><b>{{ p.consent_status }}</b></div>
+        <div><span>Visit</span><b>{{ p.visit_date or '—' }}</b></div>
+        <div><span>Age</span><b>{{ p.age or '—' }}</b></div>
+      </div>
+
+      <div class="pc-actions">
+        <a class="pc-btn" href="{{ url_for('participant_detail', pid=p.id) }}">👁 View</a>
+        <a class="pc-btn" href="{{ url_for('participant_edit', pid=p.id) }}">✏️ Edit</a>
+        <a class="pc-btn" href="{{ url_for('data_new', pid=p.id) }}">➕ Add data</a>
+        <form method="post" action="{{ url_for('participant_archive', pid=p.id) }}"
+              onsubmit="return confirm('Archive {{ p.participant_code }}?')"
+              style="display:inline">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="pc-btn pc-btn-danger" type="submit">🗑 Archive</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% endif %}
+</form>
+
+{# ─────────── Select-all on mobile ─────────── #}
+{% if rows %}
+<div class="part-mobile-actions">
+  <button type="button" class="btn" onclick="toggleAllChecks()" id="select-all-btn">
+    Select all
+  </button>
+</div>
+<script>
+function toggleAllChecks() {
+  const checks = document.querySelectorAll(".part-row-check");
+  const btn = document.getElementById("select-all-btn");
+  const allChecked = Array.from(checks).every(c => c.checked);
+  checks.forEach(c => c.checked = !allChecked);
+  btn.textContent = allChecked ? "Select all" : "Deselect all";
+}
+document.querySelectorAll(".part-check-all").forEach(el => {
+  el.addEventListener("change", () => {
+    document.querySelectorAll(".part-row-check").forEach(c => c.checked = el.checked);
+  });
+});
+</script>
+{% endif %}
+
+{% endblock %}

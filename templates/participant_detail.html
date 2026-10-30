@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}{{ p.participant_code }} · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>{{ p.participant_code }}</h1>
+    <p>{{ p.study_code }} — {{ p.study_title }}</p>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <a class="btn" href="{{ url_for('participants_list') }}">← All participants</a>
+    <a class="btn" href="{{ url_for('participant_edit', pid=p.id) }}">Edit</a>
+    <a class="btn" href="{{ url_for('print_participant', pid=p.id) }}" target="_blank">🖨 Print</a>
+    <a class="btn" href="{{ url_for('export_participant', pid=p.id, fmt='csv') }}">⬇ CSV</a>
+    <a class="btn" href="{{ url_for('export_participant', pid=p.id, fmt='xlsx') }}">⬇ Excel</a>
+    <a class="btn" href="{{ url_for('export_participant', pid=p.id, fmt='pdf') }}">⬇ PDF</a>
+    <a class="btn" href="{{ url_for('files_list', pid=p.id) }}">📎 Files</a>
+    <a class="btn" href="{{ url_for('qr_page', pid=p.id) }}">🔳 QR</a>
+    <a class="btn" href="{{ url_for('participant_visits', pid=p.id) }}">📅 Visits</a>
+    <a class="btn" href="{{ url_for('participant_specimens', pid=p.id) }}">🧪 Biospecimens</a>
+    <a class="btn primary" href="{{ url_for('data_new', pid=p.id) }}">+ Add data record</a>
+  </div>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <h2>Overview</h2>
+    {% set cls = p.classification or 'Undetermined' %}
+    {% set color = {'Control':'#2563eb','Study':'#7c3aed','Excluded':'#dc2626','Undetermined':'#d97706'}.get(cls,'#64748b') %}
+    {% set bg    = {'Control':'#eff6ff','Study':'#ede9fe','Excluded':'#fef2f2','Undetermined':'#fffbeb'}.get(cls,'#f1f5f9') %}
+    <div style="padding:10px 14px;border-radius:10px;background:{{ bg }};color:{{ color }};
+                border:1px solid {{ color }}33;margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase">
+        Classification
+      </div>
+      <div style="font-size:18px;font-weight:800;margin:2px 0">{{ cls }}</div>
+      <div style="font-size:12px">{{ p.classification_reason or 'Not yet evaluated' }}</div>
+      <div style="margin-top:8px;display:flex;gap:6px">
+        <form method="post" action="{{ url_for('participant_reclassify', pid=p.id) }}">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn sm">🔁 Re-evaluate</button>
+        </form>
+        <form method="post" action="{{ url_for('participant_set_classification', pid=p.id) }}" style="display:flex;gap:4px">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <select name="classification" style="border:1px solid var(--border);border-radius:6px;padding:3px 6px;font-size:12px">
+            <option>Control</option><option>Study</option><option>Excluded</option><option>Undetermined</option>
+          </select>
+          <button class="btn sm">Set manually</button>
+        </form>
+      </div>
+    </div>
+    <div class="status-list">
+      <div>Consent <b>{{ p.consent_status }}</b></div>
+      <div>Group <b>{{ p.group_type }}</b></div>
+      <div>Visit date <b>{{ p.visit_date or '—' }}</b></div>
+      <div>Sex <b>{{ p.sex or '—' }}</b></div>
+      <div>Age <b>{{ p.age or '—' }}</b></div>
+      <div>Screening <b>{{ p.screening_status }}</b></div>
+      <div>Enrollment <b>{{ p.enrollment_status }}</b></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Notes</h2>
+    <p>{{ p.notes or 'No notes.' }}</p>
+    <form method="post" action="{{ url_for('participant_archive', pid=p.id) }}"
+          onsubmit="return confirm('Archive this participant?')" style="margin-top:14px">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="btn danger">Archive participant</button>
+    </form>
+  </div>
+</div>
+
+<div class="card table-wrap" style="margin-top:12px">
+  <h2>Data records ({{ records|length }})</h2>
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Visit date</th><th>Entered by</th><th>Created</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for r in records %}
+      <tr>
+        <td><b>#{{ r.id }}</b></td>
+        <td>{{ r.visit_date or '—' }}</td>
+        <td>{{ r.username or '—' }}</td>
+        <td><small>{{ r.created_at }}</small></td>
+        <td><a href="{{ url_for('record_view', rid=r.id) }}">View values</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="muted" style="text-align:center;padding:24px">
+        No records yet. Click "+ Add data record" to enter data.
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

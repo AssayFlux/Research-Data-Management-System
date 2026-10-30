@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}Print settings · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>Print settings</h1>
+    <p>Header, footer, signatures and extras — applied to every 🖨 Print button.</p>
+  </div>
+  <a class="btn" href="{{ url_for('print_preview', profile=profile) }}" target="_blank">👁 Preview</a>
+</div>
+
+<div class="ps-tabs">
+  {% for key, label in contexts.items() %}
+  <a href="?profile={{ key }}" class="{% if key == profile %}active{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div><div class="ps-section-nav">
+  <a href="#s-header">Header</a>
+  <a href="#s-people">People</a>
+  <a href="#s-signatures">Signatures</a>
+  <a href="#s-footer">Footer</a>
+  <a href="#s-extra">Extra content</a>
+  <a href="#s-layout">Layout</a>
+</div>
+
+<form method="post" class="card">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <input type="hidden" name="profile" value="{{ profile }}">
+
+  {# ---------------- HEADER ---------------- #}
+  <h2 id="s-header">Header</h2>
+  <div class="form-grid">
+    <label>Institution / Hospital name
+      <input name="institution" value="{{ cfg.institution }}" placeholder="e.g. ABC Medical College">
+    </label>
+    <label>Subtitle
+      <input name="subtitle" value="{{ cfg.subtitle }}" placeholder="e.g. Department of Biochemistry">
+    </label>
+    <label>Department
+      <input name="department" value="{{ cfg.department }}" placeholder="e.g. Biochemistry">
+    </label>
+    <label>Study name
+      <input name="study_name" value="{{ cfg.study_name }}" placeholder="e.g. PCOS Biomarker Study">
+    </label>
+  </div>
+
+  <h3 class="sub">Extra header lines <button type="button" class="btn sm" onclick="addRow('header-lines','header_line')">+ Add line</button></h3>
+  <div id="header-lines">
+    {% for line in cfg.header_lines %}
+    <div class="repeat-row">
+      <input name="header_line" value="{{ line }}">
+      <button type="button" class="btn sm" onclick="this.parentElement.remove()">✕</button>
+    </div>
+    {% endfor %}
+  </div>
+
+  <h3 class="sub">Logo</h3>
+  <label class="check">
+    <input type="checkbox" name="show_logo" {% if cfg.show_logo %}checked{% endif %}>
+    <span>Show logo in header</span>
+  </label>
+  <label>Logo URL
+    <input name="logo_url" value="{{ cfg.logo_url }}" placeholder="/static/logo.png">
+  </label>
+
+  {# ---------------- PEOPLE ---------------- #}
+  <h2 id="s-people" style="margin-top:28px">People</h2>
+
+  <h3 class="sub">Guide(s) <button type="button" class="btn sm" onclick="addRow('guides','guide')">+ Add Guide</button></h3>
+  <div id="guides">
+    {% for x in cfg.guides %}
+    <div class="repeat-row"><input name="guide" value="{{ x }}">
+      <button type="button" class="btn sm" onclick="this.parentElement.remove()">✕</button></div>
+    {% endfor %}
+  </div>
+
+  <h3 class="sub">Co-Guide(s) <button type="button" class="btn sm" onclick="addRow('coguides','coguide')">+ Add Co-Guide</button></h3>
+  <div id="coguides">
+    {% for x in cfg.coguides %}
+    <div class="repeat-row"><input name="coguide" value="{{ x }}">
+      <button type="button" class="btn sm" onclick="this.parentElement.remove()">✕</button></div>
+    {% endfor %}
+  </div>
+
+  <h3 class="sub">Researcher(s) <button type="button" class="btn sm" onclick="addRow('researchers','researcher')">+ Add Researcher</button></h3>
+  <div id="researchers">
+    {% for x in cfg.researchers %}
+    <div class="repeat-row"><input name="researcher" value="{{ x }}">
+      <button type="button" class="btn sm" onclick="this.parentElement.remove()">✕</button></div>
+    {% endfor %}
+  </div>
+
+  {# ---------------- SIGNATURES ---------------- #}
+  <h2 id="s-signatures" style="margin-top:28px">Signatures</h2>
+  <label class="check">
+    <input type="checkbox" name="show_signatures" {% if cfg.show_signatures %}checked{% endif %}>
+    <span>Show signature lines at bottom of every print</span>
+  </label>
+  <h3 class="sub">Signature labels <button type="button" class="btn sm" onclick="addRow('signatures','signature')">+ Add signature</button></h3>
+  <div id="signatures">
+    {% for x in cfg.signatures %}
+    <div class="repeat-row"><input name="signature" value="{{ x }}">
+      <button type="button" class="btn sm" onclick="this.parentElement.remove()">✕</button></div>
+    {% endfor %}
+  </div>
+
+  {# ---------------- FOOTER ---------------- #}
+  <h2 id="s-footer" style="margin-top:28px">Footer</h2>
+  <div class="form-grid">
+    <label>Copyright
+      <input name="copyright" value="{{ cfg.copyright }}" placeholder="© 2026 Your name">
+    </label>
+    <label>Website / contact
+      <input name="website" value="{{ cfg.website }}" placeholder="research.example.com">
+    </label>
+  </div>
+  <h3 class="sub">Extra footer lines <button type="button" class="btn sm" onclick="addRow('footer-lines','footer_line')">+ Add line</button></h3>
+  <div id="footer-lines">
+    {% for line in cfg.footer_lines %}
+    <div class="repeat-row"><input name="footer_line" value="{{ line }}">
+      <button type="button" class="btn sm" onclick="this.parentElement.remove()">✕</button></div>
+    {% endfor %}
+  </div>
+
+  {# ---------------- EXTRA ---------------- #}
+  <h2 id="s-extra" style="margin-top:28px">Extra content</h2>
+  <label class="switch-row">
+    <input type="checkbox" name="extra_enabled" id="extra-toggle" {% if cfg.extra_enabled %}checked{% endif %}>
+    <span class="switch"></span>
+    <span class="switch-label">Enable extra content block (criteria, format, layout notes, etc.)</span>
+  </label>
+  <div id="extra-fields" style="{% if not cfg.extra_enabled %}display:none{% endif %}">
+    <label>Block title
+      <input name="extra_title" value="{{ cfg.extra_title }}">
+    </label>
+    <label>Extra content
+      <textarea name="extra_content" rows="8" placeholder="Inclusion criteria: ...&#10;Exclusion criteria: ...&#10;Special notes / formatting rules...">{{ cfg.extra_content }}</textarea>
+    </label>
+  </div>
+
+  {# ---------------- LAYOUT ---------------- #}
+  <h2 id="s-layout" style="margin-top:28px">Layout</h2>
+  <div class="form-grid">
+    <label>Orientation
+      <select name="layout">
+        <option value="portrait"  {% if cfg.layout == 'portrait'  %}selected{% endif %}>Portrait</option>
+        <option value="landscape" {% if cfg.layout == 'landscape' %}selected{% endif %}>Landscape</option>
+      </select>
+    </label>
+    <label>Margin (mm)
+      <input type="number" name="margin_mm" min="5" max="40" value="{{ cfg.margin_mm }}">
+    </label>
+  </div>
+  <label class="check">
+    <input type="checkbox" name="show_page_numbers" {% if cfg.show_page_numbers %}checked{% endif %}>
+    <span>Show page numbers in footer</span>
+  </label>
+
+  <div class="form-actions" style="margin-top:22px">
+    <a class="btn" href="{{ url_for('print_preview', profile=profile) }}" target="_blank">👁 Preview</a>
+    <button type="submit" class="btn primary">Save settings</button>
+  </div>
+</form>
+
+<form method="post" action="{{ url_for('print_reset', profile=profile) }}"
+      onsubmit="return confirm('Reset this profile to defaults?')" style="margin-top:12px">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <button class="btn danger sm">Reset this profile to defaults</button>
+</form>
+
+<script>
+function addRow(containerId, fieldName) {
+  const c = document.getElementById(containerId);
+  const d = document.createElement('div');
+  d.className = 'repeat-row';
+  const i = document.createElement('input');
+  i.name = fieldName;
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'btn sm'; b.textContent = '✕';
+  b.onclick = () => d.remove();
+  d.appendChild(i); d.appendChild(b);
+  c.appendChild(d);
+  i.focus();
+}
+document.getElementById('extra-toggle').addEventListener('change', e => {
+  document.getElementById('extra-fields').style.display = e.target.checked ? 'block' : 'none';
+});
+document.querySelectorAll('.print-section-nav a').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+
+{% endblock %}

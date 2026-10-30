@@ -1,0 +1,49 @@
+(function () {
+  const side    = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+  const menu    = document.getElementById("menu");
+  const closeBtn= document.getElementById("sidebar-close");
+
+  function open() {
+    if (!side) return;
+    side.classList.add("open");
+    if (overlay) overlay.classList.add("show");
+    document.body.style.overflow = "hidden";
+  }
+  function close() {
+    if (!side) return;
+    side.classList.remove("open");
+    if (overlay) overlay.classList.remove("show");
+    document.body.style.overflow = "";
+  }
+  function toggle() {
+    if (!side) return;
+    side.classList.contains("open") ? close() : open();
+  }
+
+  if (menu)     menu.addEventListener("click", toggle);
+  if (overlay)  overlay.addEventListener("click", close);
+  if (closeBtn) closeBtn.addEventListener("click", close);
+
+  // Close when clicking a real navigation link (not anchor-only)
+  document.querySelectorAll(".sidebar nav a").forEach(a => {
+    const href = a.getAttribute("href") || "";
+    if (href && href !== "#" && !href.startsWith("javascript")) {
+      a.addEventListener("click", () => {
+        if (window.matchMedia("(max-width: 900px)").matches) close();
+      });
+    }
+  });
+
+  document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+
+  // Highlight active link
+  const path = location.pathname;
+  document.querySelectorAll(".sidebar nav a").forEach(a => {
+    const href = a.getAttribute("href") || "";
+    if (!href || href === "#") return;
+    if (href === "/" ? path === "/" : path.startsWith(href)) {
+      a.classList.add("active");
+    }
+  });
+})();

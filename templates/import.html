@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Import · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>Import CSV</h1><p>Bulk-load participants and values.</p></div>
+  <a class="btn" href="{{ url_for('import_template') }}">⬇ Download template</a>
+</div>
+
+<div class="card">
+  <h2>1. Choose file</h2>
+  <p class="muted">
+    Format: <code>participant_code, parameter_code, value</code> — one value per row.
+    Parameter codes must already exist under <a href="{{ url_for('parameters_list') }}">Parameters</a>.
+  </p>
+  <form method="post" action="{{ url_for('import_preview') }}" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <label>CSV file<input type="file" name="csv_file" accept=".csv" required></label>
+    <div class="form-actions"><button class="btn primary">Preview</button></div>
+  </form>
+</div>
+
+{% if preview %}
+<div class="card" style="margin-top:12px">
+  <h2>2. Preview ({{ total }} rows total, showing first {{ rows|length }})</h2>
+  <div class="table-wrap" style="max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:0">
+    <table>
+      <thead><tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>{% for c in r %}<td>{{ c }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+  <h2>3. Import into study</h2>
+  <form method="post" action="{{ url_for('import_commit') }}" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <label>Study
+      <select name="study_id" required>
+        <option value="">— choose study —</option>
+        {% for s in [] %}{% endfor %}
+      </select>
+    </label>
+    <label>CSV (upload again to confirm)
+      <input type="file" name="csv_file" accept=".csv" required>
+    </label>
+    <div class="form-actions"><button class="btn primary">Import now</button></div>
+  </form>
+</div>
+{% endif %}
+
+{% endblock %}

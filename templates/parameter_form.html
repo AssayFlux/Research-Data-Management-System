@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit parameter' if row else 'New parameter' }} · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+<div><h1>{{ 'Edit parameter' if row else 'New parameter' }}</h1>
+<p>Define a measurement variable and its validation rules.</p></div>
+</div>
+<form class="card form-grid" method="post">
+<input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+<label>Code<input name="code" value="{{ row.code if row else '' }}" required></label>
+<label>Name<input name="name" value="{{ row.name if row else '' }}" required></label>
+<label>Category<input name="category" value="{{ row.category if row else 'Other' }}"></label>
+<label>Data type<select name="data_type">
+{% for t in data_types %}<option {% if row and row.data_type==t %}selected{% endif %}>{{ t }}</option>{% endfor %}
+</select></label>
+<label>Unit<input name="unit" value="{{ row.unit if row else '' }}"></label>
+<label>Group<select name="group_id">
+<option value="">No group</option>
+{% for g in groups %}<option value="{{ g.id }}" {% if row and row.group_id==g.id %}selected{% endif %}>{{ g.name }}</option>{% endfor %}
+</select></label>
+<label>New group (optional)<input name="new_group" placeholder="e.g. Lipids"></label>
+<label>Sort order<input type="number" name="sort_order" value="{{ row.sort_order if row else 0 }}"></label>
+<label>Reference low<input type="number" step="any" name="ref_low" value="{{ row.ref_low if row else '' }}"></label>
+<label>Reference high<input type="number" step="any" name="ref_high" value="{{ row.ref_high if row else '' }}"></label>
+<label>Reference text<input name="ref_text" value="{{ row.ref_text if row else '' }}" placeholder="e.g. Normal 70–100"></label>
+<label>Min value<input type="number" step="any" name="min_value" value="{{ row.min_value if row else '' }}"></label>
+<label>Max value<input type="number" step="any" name="max_value" value="{{ row.max_value if row else '' }}"></label>
+<label>Choices (comma-separated)<input name="choices" value="{{ row.choices if row else '' }}" placeholder="e.g. Male,Female"></label>
+<label class="check"><input type="checkbox" name="required" {% if row and row.required %}checked{% endif %}><span>Required</span></label>
+<label class="full">Description<textarea name="description">{{ row.description if row else '' }}</textarea></label>
+<label class="full">Formula (optional)<input name="formula" value="{{ row.formula if row else '' }}" placeholder="e.g. weight/(height*height)"></label>
+<div class="form-actions full">
+<a class="btn" href="{{ url_for('parameters_list') }}">Cancel</a>
+<button class="btn primary">Save parameter</button>
+</div>
+</form>
+{% endblock %}

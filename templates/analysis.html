@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Analysis · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>Analysis</h1><p>Professional statistics, distribution tests, regression & prediction — linked to your stored data.</p></div>
+  <a class="btn" href="{{ url_for('print_hub') }}">🖨 Print center</a>
+</div>
+
+<div class="card">
+  <div class="form-grid">
+    <label>Study
+      <select id="study_id">
+        <option value="">All studies</option>
+        {% for s in studies %}<option value="{{ s.id }}">{{ s.study_code }} — {{ s.title }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Parameter X / primary
+      <select id="param_id">
+        {% for p in params %}
+        <option value="{{ p.id }}">{{ p.category }} · {{ p.name }} ({{ p.code }}){% if p.unit %} — {{ p.unit }}{% endif %}</option>
+        {% else %}<option value="">No parameters yet</option>{% endfor %}
+      </select>
+    </label>
+    <label>Parameter Y / secondary (for correlation & regression)
+      <select id="param_id2">
+        <option value="">— none —</option>
+        {% for p in params %}<option value="{{ p.id }}">{{ p.name }} ({{ p.code }})</option>{% endfor %}
+      </select>
+    </label>
+    <label>Classification filter
+      <select id="classification">
+        <option value="">All participants</option>
+        <option value="Study">Study / Case only</option>
+        <option value="Control">Control only</option>
+        <option value="Excluded">Excluded only</option>
+        <option value="Undetermined">Undetermined only</option>
+      </select>
+    </label>
+    <label>Records mode
+      <select id="records_mode">
+        <option value="latest">Latest record per participant</option>
+        <option value="first">First record per participant</option>
+        <option value="all">All records (pooled)</option>
+      </select>
+    </label>
+  </div>
+  <div id="formula-caption" style="margin-top:10px;font-size:12px;color:var(--muted)"></div>
+</div>
+
+<div class="analysis-tabs">
+  <a href="#t-descriptive" class="active" data-tab="descriptive">📏 Descriptive</a>
+  <a href="#t-normality"  data-tab="normality">🔔 Normality & variance</a>
+  <a href="#t-compare"    data-tab="compare">⚖️ Compare groups</a>
+  <a href="#t-multigroup" data-tab="multigroup">🎯 Multi-group (ANOVA / KW)</a>
+  <a href="#t-regression" data-tab="regression">📈 Regression & prediction</a>
+  <a href="#t-diagnostics" data-tab="diagnostics">🎯 ROC / diagnostics</a>
+  <a href="#t-forecast"   data-tab="forecast">🔮 Trend forecast</a>
+  <a href="#t-samplesize" data-tab="samplesize">🧮 Sample size</a>
+</div>
+
+<div id="result-panel" class="card">
+  <div id="result-body" class="result"></div>
+  <div class="form-actions" style="margin-top:12px">
+    <button class="btn" onclick="copyJson()">📋 Copy JSON</button>
+    <button class="btn primary" onclick="printAnalysis()">🖨 Print report</button>
+  </div>
+</div>
+
+<script>
+const CSRF = "{{ csrf_token() }}";
+let activeTab = "descriptive";
+let lastResult = null;
+
+function val(id) { const e = document.getElementById(id); return e ? e.value : ""; }
+function filters() {
+  return {
+    study_id: val("study_id"),
+    classification: val("classification"),
+    records_mode: val("records_mode"),
+  };
+}
+async function loadCaption() {
+  const pid = val("param_id");
+  if (!pid) return;
+  const body = new FormData();
+  body.append("_csrf", CSRF);
+  body.append("parameter_id", pid);
+  const r = await fetch("/analysis/parameter-info", { method: "POST", body });
+  const d = await r.json();
+  if (d.error) { document.getElementById("formula-caption").textContent = ""; return; }
+  let t = `<b>${d.name}</b> (${d.code})`;
+  if (d.unit) t += ` · ${d.unit}`;
+  if (d.ref_text) t += ` · Ref: ${d.ref_text}`;
+  if (d.formulas && d.formulas.length) {
+    t += " · <span style='color:#059669'>Computed as: ";
+    t += d.formulas.map(f => `<code>${f.expression}</code> (inputs: ${f.inputs.join(", ") || "—"})`).join(" · ");
+    t += "</span>";
+  }
+  document.getElementById("formula-caption").innerHTML = t;
+}
+
+async function call(url, data) {
+  const body = new FormData();
+  body.append("_csrf", CSRF);
+  for (const k in data) body.append(k, data[k] ?? "");
+  const r = await fetch(url, { method: "POST", body });
+  return r.json();
+}
+
+function show(obj) {
+  lastResult = obj;
+  document.getElementById("result-body").textContent = JSON.stringify(obj, null, 2);
+}
+
+function copyJson() {
+  if (!lastResult) return;
+  navigator.clipboard?.writeText(JSON.stringify(lastResult, null, 2));
+}
+
+function printAnalysis() {
+  const pid = val("param_id");
+  const sid = val("study_id");
+  if (!pid) { alert("Select a parameter first"); return; }
+  const qs = new URLSearchParams({ parameter_id: pid });
+  const f = filters(); if (f.study_id) qs.set("study_id", f.study_id);
+  if (f.classification) qs.set("classification", f.classification);
+  if (f.records_mode) qs.set("records_mode", f.records_mode);
+  window.open("/print/analysis?" + qs, "_blank");
+}
+
+async function run() {
+  const pid = val("param_id");
+  const sid = val("study_id");
+  const pid2 = val("param_id2");
+  const base = Object.assign({ parameter_id: pid }, filters());
+  let out;
+  if (activeTab === "descriptive") {
+    out = await call("/analysis/descriptive", base);
+  } else if (activeTab === "normality") {
+    out = await call("/analysis/normality", base);
+  } else if (activeTab === "compare") {
+    out = await call("/analysis/compare", base);
+  } else if (activeTab === "multigroup") {
+    out = await call("/analysis/multigroup", base);
+  } else if (activeTab === "regression") {
+    if (!pid2) { show({error: "Pick a second parameter"}); return; }
+    const predict_x = prompt("Optional: enter X value for prediction (leave blank to skip)", "");
+    out = await call("/analysis/regression",
+      Object.assign({ x_id: pid, y_id: pid2, predict_x: predict_x || "" }, filters()));
+  } else if (activeTab === "diagnostics") {
+    out = await call("/analysis/diagnostics", Object.assign({ y_id: pid }, filters()));
+  } else if (activeTab === "forecast") {
+    out = await call("/analysis/forecast", base);
+  } else if (activeTab === "samplesize") {
+    const kind = prompt("Type 'mean' or 'prop'", "mean") || "mean";
+    const margin = prompt("Margin of error (e.g. 5 for ±5)", "5") || "5";
+    if (kind === "mean") {
+      const sd = prompt("Standard deviation (SD)", "10") || "10";
+      out = await call("/analysis/sample-size", { kind: "mean", sd, margin });
+    } else {
+      const p = prompt("Expected proportion (0-1)", "0.5") || "0.5";
+      out = await call("/analysis/sample-size", { kind: "prop", p, margin });
+    }
+  }
+  show(out);
+}
+
+document.querySelectorAll(".analysis-tabs a").forEach(a => {
+  a.addEventListener("click", e => {
+    e.preventDefault();
+    document.querySelectorAll(".analysis-tabs a").forEach(x => x.classList.remove("active"));
+    a.classList.add("active");
+    activeTab = a.dataset.tab;
+    run();
+  });
+});
+
+document.getElementById("param_id").addEventListener("change", () => { loadCaption(); run(); });
+document.getElementById("classification").addEventListener("change", run);
+document.getElementById("records_mode").addEventListener("change", run);
+document.getElementById("study_id").addEventListener("change", run);
+document.getElementById("param_id2").addEventListener("change", run);
+
+// Auto-run on load
+loadCaption();
+run();
+</script>
+
+{% endblock %}

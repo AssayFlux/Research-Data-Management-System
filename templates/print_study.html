@@ -1,0 +1,54 @@
+{% from "_print_macros.html" import print_styles, print_header, print_footer, print_toolbar %}
+{% set cfg = print_cfg('study') %}
+<!doctype html><html><head><meta charset="utf-8">
+<title>{{ s.study_code }} · {{ app_name }}</title>
+{{ print_styles(cfg) }}
+</head><body>
+{{ print_toolbar() }}
+<div class="cp-wrap">
+  {{ print_header(cfg, app_name) }}
+
+  <div class="cp-body">
+    <h2>{{ s.study_code }} — {{ s.title }}</h2>
+    <div class="grid">
+      <div><b>PI</b>{{ s.pi or '—' }}</div>
+      <div><b>Status</b>{{ s.status }}</div>
+      <div><b>Target</b>{{ s.sample_target }}</div>
+      <div><b>Enrolled</b>{{ parts|length }}</div>
+      <div><b>Start</b>{{ s.start_date or '—' }}</div>
+      <div><b>End</b>{{ s.end_date or '—' }}</div>
+      <div><b>Protocol</b>{{ s.protocol_no or '—' }}</div>
+      <div><b>Ethics</b>{{ s.ethics_no or '—' }}</div>
+    </div>
+    {% if s.description %}<p style="font-size:10.5px">{{ s.description }}</p>{% endif %}
+
+    <h2>Participants ({{ parts|length }})</h2>
+    <table>
+      <thead><tr><th>Code</th><th>Classification</th><th>Group</th><th>Consent</th><th>Visit</th><th>Sex</th><th class="num">Age</th></tr></thead>
+      <tbody>
+        {% for p in parts %}
+        <tr>
+          <td>{{ p.participant_code }}</td>
+          <td>
+          {% set cls = p.classification or 'Undetermined' %}
+          {% set color = {'Control':'#2563eb','Study':'#7c3aed','Excluded':'#dc2626','Undetermined':'#d97706'}.get(cls,'#64748b') %}
+          {% set bg    = {'Control':'#eff6ff','Study':'#ede9fe','Excluded':'#fef2f2','Undetermined':'#fffbeb'}.get(cls,'#f1f5f9') %}
+          <span style="display:inline-block;padding:1px 8px;border-radius:999px;
+                       font-size:9px;font-weight:700;background:{{ bg }};color:{{ color }}">{{ cls }}</span>
+        </td>
+        <td>{{ p.group_type }}</td>
+          <td>{{ p.consent_status }}</td>
+          <td>{{ p.visit_date or '—' }}</td>
+          <td>{{ p.sex or '—' }}</td>
+          <td class="num">{{ p.age or '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;color:#64748b">No participants.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {{ print_footer(cfg) }}
+</div>
+</body></html>

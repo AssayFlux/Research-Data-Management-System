@@ -1,0 +1,78 @@
+{% extends "base.html" %}{% block title %}Formulas · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+<div><h1>Formulas</h1><p>Reusable calculations from parameter codes (BMI, HOMA-IR, LDL…).</p></div>
+</div>
+<div class="grid2">
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h2 style="margin:0">New formula</h2><a class="btn primary" href="{{ url_for('formula_library_page') }}">📚 Browse library</a></div>
+<form method="post" action="{{ url_for('formula_new') }}">
+<input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+<label>Name<input name="name" required placeholder="e.g. Body Mass Index"></label>
+<label>Code<input name="code" required placeholder="e.g. BMI"></label>
+<label>Expression<input name="expression" required placeholder="e.g. weight/(height*height)"></label>
+<label>Output parameter<select name="output_parameter_id">
+<option value="">None</option>
+{% for p in params %}<option value="{{ p.id }}">{{ p.name }} ({{ p.code }})</option>{% endfor %}
+</select></label>
+<label>Description<textarea name="description"></textarea></label>
+<div class="form-actions"><button class="btn primary">Save formula</button></div>
+</form>
+<p class="tiny">Available functions: abs, sqrt, log, log10, exp, round, min, max, sin, cos, tan. Operators: + - * / ** %.</p>
+</div>
+<div class="card table-wrap">
+<h2>Formula list</h2>
+
+{# ── Desktop table ── #}
+<div class="mobile-hide">
+<table><thead><tr><th>Name</th><th>Expression</th><th>Output</th><th>Actions</th></tr></thead><tbody>
+{% for f in rows %}
+<tr>
+<td><b>{{ f.name }}</b><br><small class="muted">{{ f.code }}</small></td>
+<td><code>{{ f.expression }}</code></td>
+<td>{{ f.output_name or '—' }}</td>
+<td>
+<form method="post" action="{{ url_for('formula_delete', fid=f.id) }}">
+<input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+<button style="border:0;background:none;color:var(--danger);cursor:pointer;padding:0;font:inherit">Delete</button>
+</form>
+</td>
+</tr>
+{% else %}<tr><td colspan="4" class="muted" style="text-align:center;padding:24px">No formulas yet.</td></tr>
+{% endfor %}</tbody></table>
+</div>
+
+{# ── Mobile cards ── #}
+<div class="mobile-only">
+  {% for f in rows %}
+  <div class="m-card" style="margin-bottom:8px">
+    <div class="m-card-head">
+      <div style="flex:1;min-width:0">
+        <div class="m-card-code">{{ f.code }}</div>
+        <div class="m-card-title">{{ f.name }}</div>
+      </div>
+    </div>
+    <div style="background:#0b1220;color:#a7f3d0;padding:8px 10px;border-radius:8px;
+                font:11.5px ui-monospace,monospace;margin-bottom:8px;overflow-x:auto;
+                white-space:nowrap">{{ f.expression }}</div>
+    {% if f.output_name %}
+    <div style="font-size:12px;color:#475569;margin-bottom:8px">
+      <b>Output:</b> {{ f.output_name }}
+    </div>
+    {% endif %}
+    <div class="m-card-actions">
+      <form method="post" action="{{ url_for('formula_delete', fid=f.id) }}"
+            onsubmit="return confirm('Delete {{ f.name }}?')" style="display:inline">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="m-btn" type="submit">🗑 Delete</button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <p class="muted" style="text-align:center;padding:20px">No formulas yet.</p>
+  {% endfor %}
+</div>
+
+</div>
+</div>
+{% endblock %}

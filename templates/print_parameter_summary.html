@@ -1,0 +1,68 @@
+{% from "_print_macros.html" import print_styles, print_header, print_footer, print_toolbar %}
+{% set cfg = print_cfg('parameter_summary') %}
+<!doctype html><html><head><meta charset="utf-8">
+<title>{{ p.name }} — summary</title>
+{{ print_styles(cfg) }}
+</head><body>
+{{ print_toolbar() }}
+<div class="cp-wrap">
+  {{ print_header(cfg, app_name) }}
+
+  <div class="cp-body">
+    <h2>{{ p.name }} ({{ p.code }}){% if study %} — {{ study.study_code }}{% endif %}</h2>
+    <div class="grid">
+      <div><b>Category</b>{{ p.category }}</div>
+      <div><b>Type</b>{{ p.data_type }}</div>
+      <div><b>Unit</b>{{ p.unit or '—' }}</div>
+      <div><b>Reference</b>
+        {% if p.ref_text %}{{ p.ref_text }}
+        {% elif p.ref_low is not none or p.ref_high is not none %}
+          {{ p.ref_low if p.ref_low is not none else '' }}–{{ p.ref_high if p.ref_high is not none else '' }}
+        {% else %}—{% endif %}
+      </div>
+    </div>
+
+    <h2>Statistics</h2>
+    {% if stats.n %}
+    <table>
+      <thead><tr><th>N</th><th class="num">Mean</th><th class="num">SD</th>
+                 <th class="num">Median</th><th class="num">Q1</th><th class="num">Q3</th>
+                 <th class="num">Min</th><th class="num">Max</th>
+                 <th class="num">95% CI</th></tr></thead>
+      <tbody><tr>
+        <td>{{ stats.n }}</td>
+        <td class="num">{{ stats.mean }}</td>
+        <td class="num">{{ stats.sd }}</td>
+        <td class="num">{{ stats.median }}</td>
+        <td class="num">{{ stats.q1 }}</td>
+        <td class="num">{{ stats.q3 }}</td>
+        <td class="num">{{ stats.min }}</td>
+        <td class="num">{{ stats.max }}</td>
+        <td class="num">{{ stats.ci95_low }} – {{ stats.ci95_high }}</td>
+      </tr></tbody>
+    </table>
+    {% else %}<p style="color:#64748b">No numeric values yet.</p>{% endif %}
+
+    <h2>Values by participant ({{ latest|length }})</h2>
+    <table>
+      <thead><tr><th>#</th><th>Participant</th><th>Group</th>
+                 <th class="num">Value</th><th>Unit</th></tr></thead>
+      <tbody>
+        {% for code, v in latest.items()|sort %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><b>{{ code }}</b></td>
+          <td>{{ v.group }}</td>
+          <td class="num">{{ v.value }}</td>
+          <td>{{ p.unit or '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center;color:#64748b">No values yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {{ print_footer(cfg) }}
+</div>
+</body></html>

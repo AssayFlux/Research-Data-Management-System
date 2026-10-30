@@ -1,0 +1,37 @@
+{% extends "base.html" %}{% block title %}2FA · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Two-factor authentication</h1>
+  <p>Extra protection for your account using Google Authenticator, Authy, or any TOTP app.</p></div>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <h2>Status</h2>
+    {% if u.totp_enabled %}
+    <div class="alert success">✓ 2FA is enabled</div>
+    <form method="post" action="{{ url_for('two_factor_disable') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <label>Confirm password to disable<input type="password" name="password" required></label>
+      <button class="btn danger">Disable 2FA</button>
+    </form>
+    {% else %}
+    <div class="alert warning">2FA is not enabled</div>
+    <form method="post" action="{{ url_for('two_factor_setup') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="btn primary">Set up 2FA</button>
+    </form>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2>How it works</h2>
+    <ol style="padding-left:20px;font-size:13px;line-height:1.8;color:var(--body)">
+      <li>Install Google Authenticator / Authy on your phone</li>
+      <li>Click <b>Set up 2FA</b> — we show a QR code</li>
+      <li>Scan it with your app</li>
+      <li>Enter the 6-digit code to confirm</li>
+      <li>Save the backup codes somewhere safe</li>
+    </ol>
+  </div>
+</div>
+{% endblock %}

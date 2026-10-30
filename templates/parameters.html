@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}Parameters · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>Parameters</h1>
+    <p>Laboratory, anthropometric, demographic and clinical variables.</p>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <a class="btn" href="{{ url_for('parameter_library_page') }}">📚 Library</a>
+    <a class="btn primary" href="{{ url_for('parameter_new') }}">+ Add parameter</a>
+  </div>
+</div>
+
+{# ═══════════ SEARCH + FILTER ═══════════ #}
+<form class="card param-filter" method="get">
+  <div class="param-filter-grid">
+    <label>Search
+      <input name="q" value="{{ request.args.get('q','') }}" placeholder="Code, name…">
+    </label>
+    <label>Group
+      <select name="group_id">
+        <option value="">All groups</option>
+        {% for g in groups %}
+        <option value="{{ g.id }}" {% if request.args.get('group_id') == g.id|string %}selected{% endif %}>
+          {{ g.name }} ({{ g.n }})
+        </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Category
+      <select name="category">
+        <option value="">All categories</option>
+        {% for c in ['Demographic','Anthropometric','Biochemical','Hematology','Coagulation','Endocrine','Vitals','Urine','Clinical','Other'] %}
+        <option value="{{ c }}" {% if request.args.get('category')==c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <div class="param-filter-actions">
+      <button class="btn primary">Filter</button>
+      {% if request.args.get('q') or request.args.get('category') or request.args.get('group_id') %}
+      <a class="btn" href="{{ url_for('parameters_list') }}">Clear</a>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+{# ═══════════ GROUPS ROW ═══════════ #}
+<div class="card param-groups-row">
+  <div class="param-groups-head">
+    <b>Groups ({{ groups|length }})</b>
+  </div>
+
+  <div class="param-groups-list">
+    {% for g in groups %}
+    {% set ci = loop.index0 % 6 %}
+    <span class="param-group-chip group-color-{{ ci }}">
+      <span class="pgc-name">{{ g.name }}</span>
+      <span class="param-group-count">{{ g.n }}</span>
+      <form method="post" action="{{ url_for('parameter_group_delete', gid=g.id) }}"
+            class="pgc-del-form"
+            onsubmit="return confirm('Delete group &quot;{{ g.name }}&quot;?\n\n{{ g.n }} parameter(s) will be unassigned. Their data stays safe.')">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button type="submit" class="pgc-x" title="Delete group">✕</button>
+      </form>
+    </span>
+    {% else %}
+    <span class="muted tiny">No groups yet.</span>
+    {% endfor %}
+  </div>
+
+  <form method="post" action="{{ url_for('parameter_group_create') }}" class="param-group-new">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input name="name" placeholder="New group name" required>
+    <button class="btn primary sm">Add group</button>
+  </form>
+</div>
+
+{% if not rows %}
+<div class="card empty-state">
+  <div class="empty-icon">🔬</div>
+  <h2>No parameters yet</h2>
+  <p>Install from the library or add your own.</p>
+  <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+    <a class="btn" href="{{ url_for('parameter_library_page') }}">📚 Browse library</a>
+    <a class="btn primary" href="{{ url_for('parameter_new') }}">+ Add manually</a>
+  </div>
+</div>
+{% else %}
+
+{# ═══════════ DESKTOP TABLE ═══════════ #}
+<div class="card table-wrap param-table-wrap">
+  <table class="param-table">
+    <thead>
+      <tr>
+        <th style="width:80px">Code</th>
+        <th>Name</th>
+        <th style="width:110px">Type</th>
+        <th style="width:70px">Unit</th>
+        <th style="width:130px">Reference</th>
+        <th style="width:110px">Category</th>
+        <th style="text-align:right;min-width:180px">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in rows %}
+      <tr>
+        <td><span class="param-code">{{ p.code }}</span></td>
+        <td>
+          <b>{{ p.name }}</b>
+          {% if p.description %}
+          <div class="tiny muted" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            {{ p.description }}
+          </div>
+          {% endif %}
+        </td>
+        <td><span class="param-type-badge">{{ p.data_type }}</span></td>
+        <td>{{ p.unit or '—' }}</td>
+        <td>
+          {% if p.ref_text %}{{ p.ref_text }}
+          {% elif p.ref_low is not none or p.ref_high is not none %}
+            {{ p.ref_low if p.ref_low is not none else '' }}–{{ p.ref_high if p.ref_high is not none else '' }}
+          {% else %}—{% endif %}
+        </td>
+        <td><span class="param-cat-badge">{{ p.category or 'Other' }}</span></td>
+        <td style="text-align:right;white-space:nowrap">
+          <a class="btn sm" href="{{ url_for('parameter_edit', pid=p.id) }}" title="Edit">✏️</a>
+          <form method="post" action="{{ url_for('parameter_archive', pid=p.id) }}"
+                onsubmit="return confirm('Archive {{ p.name }}?')" style="display:inline">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="btn sm" title="Archive">📦</button>
+          </form>
+          <form method="post" action="{{ url_for('parameter_delete', pid=p.id) }}"
+                onsubmit="return confirm('Permanently delete {{ p.name }}?')" style="display:inline">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="btn sm danger" title="Delete">🗑</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# ═══════════ MOBILE CARDS ═══════════ #}
+<div class="param-cards">
+  {% for p in rows %}
+  <div class="param-card">
+
+    <div class="pc-head">
+      <div style="flex:1;min-width:0">
+        <div class="pc-name">{{ p.name }}</div>
+        <div class="pc-code">{{ p.code }}{% if p.group_name %} · {{ p.group_name }}{% endif %}</div>
+      </div>
+      <span class="param-cat-badge">{{ p.category or 'Other' }}</span>
+    </div>
+
+    {# ─── All metadata on ONE line ─── #}
+    <div class="pc-inline">
+      <div class="pc-inline-item pc-inline-type">
+        <span class="pc-inline-label">Type</span>
+        <span class="pc-capsule">{{ p.data_type }}</span>
+      </div>
+      {% if p.unit %}
+      <div class="pc-inline-item pc-inline-unit">
+        <span class="pc-inline-label">Unit</span>
+        <span class="pc-capsule">{{ p.unit }}</span>
+      </div>
+      {% endif %}
+      {% if p.ref_text or p.ref_low is not none or p.ref_high is not none %}
+      <div class="pc-inline-item pc-inline-ref">
+        <span class="pc-inline-label">Reference</span>
+        <span class="pc-capsule">
+          {% if p.ref_text %}{{ p.ref_text }}
+          {% elif p.ref_low is not none and p.ref_high is not none %}
+            {{ p.ref_low }}–{{ p.ref_high }}
+          {% elif p.ref_low is not none %}
+            ≥ {{ p.ref_low }}
+          {% elif p.ref_high is not none %}
+            ≤ {{ p.ref_high }}
+          {% endif %}
+        </span>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="pc-actions">
+      <a class="pc-btn" href="{{ url_for('parameter_edit', pid=p.id) }}">✏️ Edit</a>
+      <form method="post" action="{{ url_for('parameter_archive', pid=p.id) }}"
+            onsubmit="return confirm('Archive {{ p.name }}?')" style="display:inline">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="pc-btn" type="submit">📦 Archive</button>
+      </form>
+      <form method="post" action="{{ url_for('parameter_delete', pid=p.id) }}"
+            onsubmit="return confirm('Permanently delete {{ p.name }}?')" style="display:inline">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="pc-btn pc-btn-danger" type="submit">🗑 Delete</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endif %}
+
+{% endblock %}

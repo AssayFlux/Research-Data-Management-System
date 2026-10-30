@@ -1,0 +1,42 @@
+{% extends "base.html" %}{% block title %}Visits · {{ app_name }}{% endblock %}
+{% block crumb %}<b>Visit schedule</b>{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Visit schedule</h1><p>Upcoming, overdue and completed visits across studies.</p></div>
+  <form method="get" style="display:flex;gap:8px">
+    <select name="study_id" onchange="this.form.submit()" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px">
+      <option value="">All studies</option>
+      {% for s in studies %}<option value="{{ s.id }}" {% if selected==s.id %}selected{% endif %}>{{ s.study_code }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+
+<div class="grid3">
+  <div class="card" style="border-left:3px solid #dc2626">
+    <h2 style="color:#dc2626">Overdue ({{ overdue|length }})</h2>
+    {% for v in overdue %}
+    <div style="padding:8px 0;border-bottom:1px solid #f1f5f9">
+      <a href="{{ url_for('participant_detail', pid=v.pid) }}"><b>{{ v.participant_code }}</b></a>
+      · {{ v.study_code }} · {{ v.visit_name }} ({{ v.target_date }})
+    </div>
+    {% else %}<p class="muted">None</p>{% endfor %}
+  </div>
+  <div class="card" style="border-left:3px solid #059669">
+    <h2 style="color:#059669">Upcoming ({{ upcoming|length }})</h2>
+    {% for v in upcoming %}
+    <div style="padding:8px 0;border-bottom:1px solid #f1f5f9">
+      <a href="{{ url_for('participant_detail', pid=v.pid) }}"><b>{{ v.participant_code }}</b></a>
+      · {{ v.visit_name }} · {{ v.target_date or '—' }}
+    </div>
+    {% else %}<p class="muted">None</p>{% endfor %}
+  </div>
+  <div class="card" style="border-left:3px solid #2563eb">
+    <h2 style="color:#2563eb">Recent completed</h2>
+    {% for v in completed %}
+    <div style="padding:8px 0;border-bottom:1px solid #f1f5f9">
+      <b>{{ v.participant_code }}</b> · {{ v.visit_name }} · {{ v.actual_date or '—' }}
+    </div>
+    {% else %}<p class="muted">None</p>{% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Edit record #{{ r.id }} · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div>
+    <h1>Edit record #{{ r.id }}</h1>
+    <p>{{ r.study_code }} · {{ r.participant_code }}</p>
+  </div>
+  <a class="btn" href="{{ url_for('record_view', rid=r.id) }}">← Cancel</a>
+</div>
+
+<form class="card" method="post">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <div class="param-grid">
+    {% for v in vals %}
+    <label>
+      <span>{{ v.pname }}{% if v.required %} <i style="color:#dc2626">*</i>{% endif %}</span>
+      <small class="muted">{{ v.pcode }} · {{ v.unit or '' }}
+        {% if v.ref_text %} · {{ v.ref_text }}{% endif %}</small>
+
+      {% if v.data_type == 'Choice' %}
+      <select name="p_{{ v.parameter_id }}">
+        <option value="">—</option>
+        {% for c in (v.choices or '').split(',') %}
+          {% if c.strip() %}
+          <option value="{{ c.strip() }}" {% if (v.value_text or '') == c.strip() %}selected{% endif %}>{{ c.strip() }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+      {% elif v.data_type in ('Yes/No','Boolean') %}
+      <select name="p_{{ v.parameter_id }}">
+        <option value="">—</option>
+        <option value="Yes" {% if (v.value_text or '')|lower in ('yes','true','1') %}selected{% endif %}>Yes</option>
+        <option value="No"  {% if (v.value_text or '')|lower in ('no','false','0') %}selected{% endif %}>No</option>
+      </select>
+      {% elif v.data_type == 'Long text' %}
+      <textarea name="p_{{ v.parameter_id }}">{{ v.value_text or '' }}</textarea>
+      {% elif v.data_type == 'Date' %}
+      <input type="date" name="p_{{ v.parameter_id }}" value="{{ v.value_text or '' }}">
+      {% elif v.data_type in ('Integer','Decimal') %}
+      <input type="number" step="{{ '1' if v.data_type == 'Integer' else 'any' }}"
+             name="p_{{ v.parameter_id }}"
+             value="{{ v.numeric_value if v.numeric_value is not none else '' }}">
+      {% else %}
+      <input name="p_{{ v.parameter_id }}" value="{{ v.value_text or '' }}">
+      {% endif %}
+    </label>
+    {% endfor %}
+  </div>
+  <div class="form-actions" style="margin-top:18px">
+    <a class="btn" href="{{ url_for('record_view', rid=r.id) }}">Cancel</a>
+    <button class="btn primary">Save changes</button>
+  </div>
+</form>
+{% endblock %}

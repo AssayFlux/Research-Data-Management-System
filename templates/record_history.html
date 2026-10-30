@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}History · record #{{ r.id }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Edit history — record #{{ r.id }}</h1>
+  <p>{{ r.participant_code }}</p></div>
+  <a class="btn" href="{{ url_for('record_view', rid=r.id) }}">← Record</a>
+</div>
+
+<div class="card table-wrap">
+  <table>
+    <thead><tr><th>When</th><th>User</th><th>Action</th><th>Changes / notes</th></tr></thead>
+    <tbody>
+      {% for e in edits %}
+      <tr>
+        <td><small>{{ e.created_at }}</small></td>
+        <td>{{ e.username or '—' }}</td>
+        <td><span class="badge">{{ e.action }}</span></td>
+        <td><pre style="margin:0;white-space:pre-wrap;font-size:11.5px;color:var(--body)">{{ e.field_changes or e.notes }}</pre></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="muted" style="text-align:center;padding:24px">
+        No edits yet.
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

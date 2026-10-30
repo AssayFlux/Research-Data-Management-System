@@ -1,0 +1,282 @@
+{#
+  Single source of truth for all CSS variables.
+  Emits a <style> block that is injected at the END of <body>
+  so it always wins the cascade against pro.css.
+#}
+<style id="_theme_engine">
+:root {
+  /* ── Brand ── */
+  --primary:       {{ app_settings.get('ui_primary', '#059669') }};
+  --primary-hover: {{ app_settings.get('ui_primary', '#059669') }};
+  --accent:        {{ app_settings.get('ui_accent', '#14b8a6') }};
+
+  /* ── Surfaces ── */
+  --bg:            {{ app_settings.get('ui_page_bg', '#f7f9fb') }};
+  --card-bg:       {{ app_settings.get('card_bg', '#ffffff') }};
+  --topbar-bg:     {{ app_settings.get('topbar_bg', '#ffffff') }};
+  --sidebar-bg:    {{ app_settings.get('sidebar_bg', '#ffffff') }};
+  --table-head-bg: {{ app_settings.get('table_head_bg', '#f1f5f9') }};
+  --input-bg:      {{ app_settings.get('input_bg', '#ffffff') }};
+
+  /* ── Text ── */
+  --text:              {{ app_settings.get('text_color', '#0f172a') }};
+  --heading-color:     {{ app_settings.get('heading_color', app_settings.get('text_color', '#0f172a')) }};
+  --body-color:        {{ app_settings.get('body_color', app_settings.get('text_color', '#334155')) }};
+  --muted:             {{ app_settings.get('muted_color', '#64748b') }};
+  --link-color:        {{ app_settings.get('link_color', app_settings.get('ui_primary', '#059669')) }};
+  --nav-text:          {{ app_settings.get('nav_text_color', '#334155') }};
+  --nav-icon:          {{ app_settings.get('nav_icon_color', '#64748b') }};
+  --topbar-text:       {{ app_settings.get('topbar_text', '#0f172a') }};
+  --topbar-sub:        {{ app_settings.get('topbar_sub', '#64748b') }};
+  --sidebar-text:      {{ app_settings.get('sidebar_text', '#334155') }};
+  --sidebar-icon:      {{ app_settings.get('sidebar_icon', '#64748b') }};
+  --btn-text:          {{ app_settings.get('btn_text_color', '#ffffff') }};
+  --card-text:         {{ app_settings.get('card_text_color', app_settings.get('text_color', '#0f172a')) }};
+
+  /* ── Layout ── */
+  --font-family:    {{ app_settings.get('font_family', 'Inter, system-ui, sans-serif') }};
+  --sidebar-w:      {{ app_settings.get('ui_sidebar_w', '240') }}px;
+  --font-size-base: {{ app_settings.get('ui_font_size', '14') }}px;
+  --border:         {{ app_settings.get('border_color', '#e5e9ef') }};
+
+  /* ── Accents ── */
+  --sidebar-active-bg: {{ app_settings.get('sidebar_active_bg', 'rgba(15,118,110,0.08)') }};
+}
+
+/* ── FONTS ── */
+html { font-size: var(--font-size-base); }
+body {
+  font-family: var(--font-family) !important;
+  font-size: var(--font-size-base) !important;
+  {% set _bgg = app_settings.get('ui_page_bg_gradient', '') %}
+  {% if _bgg %}
+  background: {{ _bgg|safe }} !important;
+  background-attachment: fixed !important;
+  background-size: cover !important;
+  {% else %}
+  background: var(--bg) !important;
+  {% endif %}
+  color: var(--body-color) !important;
+  min-height: 100vh;
+}
+html {
+  {% if _bgg %}background: {{ _bgg|safe }} !important;
+  {% else %}background: var(--bg) !important;{% endif %}
+}
+
+/* ── HEADINGS ── */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--heading-color) !important;
+}
+
+/* ── BODY TEXT ── */
+p, span, li, td, th, small, label, dd, dt, figcaption, blockquote {
+  color: inherit;
+}
+body, .content, main, section, article, div:not([class*="badge"]):not([class*="pill"]) {
+  color: var(--body-color);
+}
+
+/* ── MUTED ── */
+.muted, .tiny, small.muted, .text-muted {
+  color: var(--muted) !important;
+}
+
+/* ── LINKS ── */
+a { color: var(--link-color) !important; }
+a:hover { filter: brightness(0.9); }
+a.btn { color: inherit; }
+
+/* ── SIDEBAR ── */
+.sidebar,
+.sb-nav,
+.sb-items,
+.sb-group,
+.quick-panel,
+.sb-account {
+  background: var(--sidebar-bg) !important;
+}
+.sidebar { border-right: 1px solid var(--border) !important; }
+
+.sidebar nav a,
+.sb-items a {
+  color: var(--sidebar-text) !important;
+}
+.sidebar nav a .sb-ic,
+.sb-items a .sb-ic {
+  stroke: var(--sidebar-icon) !important;
+}
+.sidebar nav a:hover,
+.sb-items a:hover {
+  background: rgba(0,0,0,0.04) !important;
+  color: var(--sidebar-text) !important;
+}
+.sidebar nav a.active,
+.sb-items a.active {
+  color: var(--primary) !important;
+  background: var(--sidebar-active-bg) !important;
+}
+.sidebar nav a.active .sb-ic,
+.sb-items a.active .sb-ic {
+  stroke: var(--primary) !important;
+}
+.quick-title,
+.quick-study-code,
+.quick-empty {
+  color: var(--sidebar-text) !important;
+}
+.sb-logout-form .sb-logout,
+.sb-account .sb-logout-form .sb-logout {
+  color: var(--sidebar-text) !important;
+  background: transparent !important;
+}
+.sb-account .sb-logout-form .sb-logout .sb-ic {
+  stroke: var(--sidebar-icon) !important;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: var(--topbar-bg) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+.topbar-title {
+  color: var(--topbar-text) !important;
+}
+.topbar-sub {
+  color: var(--topbar-sub) !important;
+}
+.topbar .hamb svg,
+.topbar .iconbtn svg {
+  stroke: var(--topbar-text) !important;
+}
+.uc-name { color: var(--topbar-text) !important; }
+.uc-role { color: var(--topbar-sub) !important; }
+
+/* ── CARDS / PANELS ── */
+.card,
+.kpi-card,
+.qa-item,
+.sys-item,
+.stat-card,
+.stat-tile,
+.stat-hero,
+.criteria-card,
+.learn-card,
+.m-card,
+.lib-card,
+.crit-row,
+.set-head,
+.cat-block,
+.rf-stage,
+.quick-study {
+  background: var(--card-bg) !important;
+  color: var(--card-text) !important;
+}
+.card h1, .card h2, .card h3,
+.kpi-card b, .qa-item b, .sys-item b {
+  color: var(--heading-color) !important;
+}
+.card label,
+.card p,
+.card small,
+.card span:not(.badge):not(.pill) {
+  color: inherit;
+}
+
+/* ── DASHBOARD tiles ── */
+.d-hero,
+.d-kpi,
+.d-qa,
+.d-sys {
+  background: var(--card-bg) !important;
+  color: var(--card-text) !important;
+}
+.d-hero h1,
+.d-hero-greet,
+.d-kpi-num,
+.d-kpi-label,
+.d-qa-title,
+.d-qa-sub,
+.d-sys-name,
+.d-sys-sub {
+  color: inherit;
+}
+.d-hero-greet,
+.d-hero-sub,
+.d-qa-sub,
+.d-sys-sub {
+  color: var(--muted) !important;
+}
+
+/* ── BUTTONS ── */
+.btn.primary {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: var(--btn-text) !important;
+}
+.btn:not(.primary):not(.danger) {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+.btn.danger {
+  background: #dc2626 !important;
+  color: #fff !important;
+  border-color: #dc2626 !important;
+}
+
+/* ── FORMS ── */
+input, select, textarea {
+  background: var(--input-bg) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+input::placeholder, textarea::placeholder {
+  color: var(--muted) !important;
+}
+
+/* ── TABLES ── */
+table thead th {
+  background: var(--table-head-bg) !important;
+  color: var(--heading-color) !important;
+}
+table tbody td {
+  color: var(--body-color) !important;
+}
+
+/* ── TABS ── */
+.set-tabs a.active,
+.settings-tabs a.active,
+.analysis-tabs a.active,
+.chart-tabs a.active,
+.print-tabs a.active,
+.avatar-tabs a.active {
+  background: var(--primary) !important;
+  color: #fff !important;
+}
+.set-tabs a,
+.settings-tabs a,
+.analysis-tabs a,
+.chart-tabs a,
+.print-tabs a,
+.avatar-tabs a {
+  color: var(--body-color);
+}
+
+/* ── BADGES ── */
+.badge.info, .pill.info { background: var(--accent) !important; color: #fff !important; }
+
+/* ── FOOTER ── */
+footer.appfoot {
+  background: transparent !important;
+  color: var(--muted) !important;
+  opacity: 0.55 !important;
+}
+
+/* ── Page-level background override (beats pro.css) ── */
+body.page-bg-themed { background: var(--bg) !important; }
+
+@media (max-width: 900px) {
+  .sidebar { width: 275px !important; }
+}
+</style>

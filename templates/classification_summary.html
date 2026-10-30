@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Classification · {{ s.study_code }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Classification summary</h1><p>{{ s.study_code }} — {{ s.title }}</p></div>
+  <a class="btn" href="{{ url_for('criteria_for_study', sid=s.id) }}">⚙ Criteria</a>
+</div>
+
+<div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+  {% for cls, color, bg in [
+      ('Study','#7c3aed','#ede9fe'),
+      ('Control','#2563eb','#eff6ff'),
+      ('Excluded','#dc2626','#fef2f2'),
+      ('Undetermined','#d97706','#fffbeb')] %}
+  <div class="stat-card" style="background:{{ bg }};border-color:{{ color }}33">
+    <small style="color:{{ color }}">{{ cls }}</small>
+    <strong style="color:{{ color }}">{{ breakdown[cls] }}</strong>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <div class="status-list">
+    <div>Total participants <b>{{ total }}</b></div>
+    <div>Sample target <b>{{ s.sample_target }}</b></div>
+    <div>Progress <b>{{ ((breakdown['Study'] + breakdown['Control']) / s.sample_target * 100)|round(1) if s.sample_target else 0 }}%</b></div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+  <h2>By group_type</h2>
+  <table>
+    <thead><tr><th>Group</th><th class="num">Count</th></tr></thead>
+    <tbody>
+      {% for g in groups %}
+      <tr><td>{{ g.g }}</td><td class="num">{{ g.n }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

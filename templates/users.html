@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% from "_avatar.html" import user_avatar %}
+{% block title %}Users · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>Users</h1><p>Manage accounts, roles and access.</p></div>
+</div>
+
+{# ═══════════ CREATE USER ═══════════ #}
+<div class="card">
+  <h2>Create user</h2>
+  <form method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="form-grid">
+      <label>Username
+        <input name="username" required placeholder="lowercase, no spaces">
+      </label>
+      <label>Display name
+        <input name="display_name" placeholder="Full name (optional)">
+      </label>
+      <label>Email
+        <input name="email" type="email" placeholder="For password reset (optional)">
+      </label>
+      <label>Password
+        <input type="password" name="password" minlength="8" required placeholder="Min 8 characters">
+      </label>
+      <label class="full">Role
+        <select name="role">
+          <option value="RESEARCHER">RESEARCHER — full study access</option>
+          <option value="VIEWER">VIEWER — read-only</option>
+          <option value="ADMIN">ADMIN — full control</option>
+        </select>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="btn primary">Create user</button>
+    </div>
+  </form>
+</div>
+
+{# ═══════════ EXISTING USERS ═══════════ #}
+<div class="card" style="margin-top:14px">
+  <div class="cardhead" style="margin-bottom:10px">
+    <h2>Existing users ({{ rows|length }})</h2>
+  </div>
+
+  {# ── Desktop: table ── #}
+  <div class="users-table-wrap">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th style="width:40px"></th>
+          <th>User</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th class="col-lastlogin">Last login</th>
+          <th style="text-align:right;min-width:200px">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in rows %}
+        <tr>
+          <td>{{ user_avatar(u, 30) }}</td>
+          <td>
+            <b>{{ u.display_name or u.username }}</b>
+            <div class="tiny muted">@{{ u.username }}{% if u.email %} · {{ u.email }}{% endif %}</div>
+          </td>
+          <td>
+            <form method="post" action="{{ url_for('user_role', uid=u.id) }}" style="display:inline">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <select name="role" onchange="this.form.submit()"
+                      style="border:1px solid var(--border);border-radius:6px;padding:3px 6px;font-size:12px">
+                {% for r in ('ADMIN','RESEARCHER','VIEWER') %}
+                <option value="{{ r }}" {% if u.role == r %}selected{% endif %}>{{ r }}</option>
+                {% endfor %}
+              </select>
+            </form>
+          </td>
+          <td>
+            {% if u.active %}<span class="badge success">Active</span>
+            {% else %}<span class="badge">Disabled</span>{% endif %}
+          </td>
+          <td class="col-lastlogin"><small>{{ u.last_login or '—' }}</small></td>
+          <td style="text-align:right;white-space:nowrap">
+            <a class="btn sm" href="{{ url_for('user_edit', uid=u.id) }}" title="Edit">✏️</a>
+            {% if u.id != current_user.id %}
+            <form method="post" action="{{ url_for('user_toggle', uid=u.id) }}" style="display:inline">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <button class="btn sm" title="{% if u.active %}Disable{% else %}Enable{% endif %}">
+                {% if u.active %}🚫{% else %}✅{% endif %}
+              </button>
+            </form>
+            {% endif %}
+            <form method="post" action="{{ url_for('user_generate_reset_link', uid=u.id) }}" style="display:inline">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <button class="btn sm" title="Reset link">🔑</button>
+            </form>
+            {% if u.id != current_user.id %}
+            <form method="post" action="{{ url_for('user_delete', uid=u.id) }}"
+                  onsubmit="return confirm('Delete user {{ u.username }}?')" style="display:inline">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <button class="btn sm danger" title="Delete">🗑</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="muted" style="text-align:center;padding:24px">No users.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# ── Mobile: cards ── #}
+  <div class="users-cards">
+    {% for u in rows %}
+    <div class="user-card">
+      <div class="uc-top">
+        {{ user_avatar(u, 42) }}
+        <div class="uc-info">
+          <div class="uc-name">{{ u.display_name or u.username }}</div>
+          <div class="uc-sub">@{{ u.username }}{% if u.email %} · {{ u.email }}{% endif %}</div>
+        </div>
+        <div>
+          {% if u.active %}<span class="badge success">Active</span>
+          {% else %}<span class="badge">Disabled</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="uc-role-row">
+        <span class="uc-role-label">Role</span>
+        <form method="post" action="{{ url_for('user_role', uid=u.id) }}" style="display:inline">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <select name="role" onchange="this.form.submit()"
+                  style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px">
+            {% for r in ('ADMIN','RESEARCHER','VIEWER') %}
+            <option value="{{ r }}" {% if u.role == r %}selected{% endif %}>{{ r }}</option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
+
+      {% if u.last_login %}
+      <div class="uc-last">Last login: <b>{{ u.last_login }}</b></div>
+      {% endif %}
+
+      <div class="uc-actions">
+        <a class="uc-btn" href="{{ url_for('user_edit', uid=u.id) }}">✏️ Edit</a>
+
+        {% if u.id != current_user.id %}
+        <form method="post" action="{{ url_for('user_toggle', uid=u.id) }}" style="display:inline">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="uc-btn" type="submit">
+            {% if u.active %}🚫 Disable{% else %}✅ Enable{% endif %}
+          </button>
+        </form>
+        {% endif %}
+
+        <form method="post" action="{{ url_for('user_generate_reset_link', uid=u.id) }}" style="display:inline">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="uc-btn" type="submit">🔑 Reset link</button>
+        </form>
+
+        {% if u.id != current_user.id %}
+        <form method="post" action="{{ url_for('user_delete', uid=u.id) }}"
+              onsubmit="return confirm('Delete user {{ u.username }}?')" style="display:inline">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="uc-btn uc-danger" type="submit">🗑 Delete</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <p class="muted" style="text-align:center;padding:24px">No users.</p>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

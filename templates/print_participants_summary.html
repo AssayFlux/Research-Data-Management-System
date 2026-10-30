@@ -1,0 +1,87 @@
+{% from "_print_macros.html" import print_styles, print_header, print_footer, print_toolbar %}
+{% set cfg = print_cfg('participants_summary') %}
+<!doctype html><html><head><meta charset="utf-8">
+<title>Participants summary · {{ s.study_code }}</title>
+{{ print_styles(cfg) }}
+</head><body>
+{{ print_toolbar() }}
+<div class="cp-wrap">
+  {{ print_header(cfg, app_name) }}
+
+  <div class="cp-body">
+    <h2>{{ s.study_code }} — {{ s.title }}</h2>
+    <div class="grid">
+      <div><b>PI</b>{{ s.pi or '—' }}</div>
+      <div><b>Status</b>{{ s.status }}</div>
+      <div><b>Target</b>{{ s.sample_target }}</div>
+      <div><b>Enrolled</b>{{ parts|length }}</div>
+    </div>
+
+    <h2>Group counts</h2>
+    <table>
+      <thead><tr><th>Classification</th><th>Group</th><th class="num">N</th></tr></thead>
+      <tbody>
+        {% for gname, n in groups.items() %}
+        <tr><td>{{ gname }}</td><td class="num">{{ n }}</td></tr>
+        {% endfor %}
+        <tr><td><b>Total</b></td><td class="num"><b>{{ parts|length }}</b></td></tr>
+      </tbody>
+    </table>
+
+    {% if age_stats.n %}
+    <h2>Age statistics</h2>
+    <table>
+      <thead><tr><th>N</th><th class="num">Mean</th><th class="num">SD</th>
+                 <th class="num">Median</th><th class="num">Min</th><th class="num">Max</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>{{ age_stats.n }}</td>
+          <td class="num">{{ age_stats.mean }}</td>
+          <td class="num">{{ age_stats.sd }}</td>
+          <td class="num">{{ age_stats.median }}</td>
+          <td class="num">{{ age_stats.min }}</td>
+          <td class="num">{{ age_stats.max }}</td>
+        </tr>
+      </tbody>
+    </table>
+    {% endif %}
+
+    <h2>Participant roster</h2>
+    <table>
+      <thead><tr>
+        <th>#</th><th>Code</th><th>Classification</th><th>Group</th><th>Consent</th>
+        <th>Visit</th><th>Sex</th><th class="num">Age</th>
+        {% if param %}<th class="num">{{ param.name }}{% if param.unit %} ({{ param.unit }}){% endif %}</th>{% endif %}
+      </tr></thead>
+      <tbody>
+        {% for p in parts %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><b>{{ p.participant_code }}</b></td>
+          <td>
+          {% set cls = p.classification or 'Undetermined' %}
+          {% set color = {'Control':'#2563eb','Study':'#7c3aed','Excluded':'#dc2626','Undetermined':'#d97706'}.get(cls,'#64748b') %}
+          {% set bg    = {'Control':'#eff6ff','Study':'#ede9fe','Excluded':'#fef2f2','Undetermined':'#fffbeb'}.get(cls,'#f1f5f9') %}
+          <span style="display:inline-block;padding:1px 8px;border-radius:999px;
+                       font-size:9px;font-weight:700;background:{{ bg }};color:{{ color }}">{{ cls }}</span>
+        </td>
+        <td>{{ p.group_type }}</td>
+          <td>{{ p.consent_status }}</td>
+          <td>{{ p.visit_date or '—' }}</td>
+          <td>{{ p.sex or '—' }}</td>
+          <td class="num">{{ p.age or '—' }}</td>
+          {% if param %}
+          <td class="num">
+            {% set v = param_values.get(p.id) %}
+            {% if v is not none %}{{ v }}{% else %}—{% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {{ print_footer(cfg) }}
+</div>
+</body></html>

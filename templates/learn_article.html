@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}{{ meta.title }} · Learn{% endblock %}
+{% block content %}
+
+<div class="learn-layout">
+
+  {# ─── Sidebar ─── #}
+  <aside class="learn-sidebar">
+    <a class="learn-sidebar-back" href="{{ url_for('learn_home') }}">
+      {{ icon('chevron-left', 14, '#0f766e', 2) }} All topics
+    </a>
+    {% for group in sidebar %}
+    <div class="learn-sidebar-group">
+      <div class="learn-sidebar-label">{{ group.icon }} {{ group.label }}</div>
+      {% for a in group.articles %}
+      <a href="{{ url_for('learn_article', article_id=a.id) }}"
+         class="learn-sidebar-link {% if a.id == meta.id %}active{% endif %}">
+        {{ a.title }}
+      </a>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </aside>
+
+  {# ─── Content ─── #}
+  <article class="learn-article">
+    <div class="learn-article-head">
+      <div class="learn-article-cat">{{ cat_icon }} {{ cat_label }}</div>
+      <h1>{{ meta.title }}</h1>
+    </div>
+
+    <div class="learn-body">
+      {{ body|safe }}
+    </div>
+
+    <div class="learn-nav">
+      {% if prev %}
+      <a class="learn-nav-btn learn-nav-prev" href="{{ url_for('learn_article', article_id=prev[0]) }}">
+        <span class="learn-nav-dir">← Previous</span>
+        <span class="learn-nav-title">{{ prev[2] }}</span>
+      </a>
+      {% else %}<span></span>{% endif %}
+
+      {% if nxt %}
+      <a class="learn-nav-btn learn-nav-next" href="{{ url_for('learn_article', article_id=nxt[0]) }}">
+        <span class="learn-nav-dir">Next →</span>
+        <span class="learn-nav-title">{{ nxt[2] }}</span>
+      </a>
+      {% else %}<span></span>{% endif %}
+    </div>
+  </article>
+
+</div>
+
+{% endblock %}

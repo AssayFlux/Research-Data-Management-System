@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}{{ f.name }} · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>{{ f.name }} <span class="badge info" style="vertical-align:middle">{{ f.abbr }}</span></h1>
+    <p>{{ f.category }} · {{ f.description }}</p>
+  </div>
+  <a class="btn" href="{{ url_for('formula_library_page') }}">← Library</a>
+</div>
+
+<div class="grid2">
+
+  {# ── Info ── #}
+  <div class="card">
+    <h2>Expression</h2>
+    <pre style="background:#0b1220;color:#a7f3d0;padding:14px;border-radius:10px;
+                font:12px ui-monospace,monospace;overflow:auto">{{ f.expression }}</pre>
+
+    <h3 style="margin-top:16px">Inputs</h3>
+    <table>
+      <thead><tr><th>Label</th><th>Unit</th></tr></thead>
+      <tbody>
+        {% for inp in f.inputs %}
+        <tr>
+          <td><b>{{ inp.label }}</b><br><small class="muted">{{ inp.key }}</small></td>
+          <td>{{ inp.unit or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="status-list" style="margin-top:14px">
+      <div>Output unit <b>{{ f.unit or '—' }}</b></div>
+      <div>Reference <b>{{ f.reference or '—' }}</b></div>
+      <div>Source <b>{{ f.source or '—' }}</b></div>
+    </div>
+  </div>
+
+  {# ── Calculator + Install ── #}
+  <div class="card">
+    <h2>Try it now</h2>
+    <p class="muted">Enter values — nothing is saved.</p>
+    <form id="calc-form">
+      {% for inp in f.inputs %}
+      <label>{{ inp.label }}
+        {% if inp.unit %}<small class="muted">({{ inp.unit }})</small>{% endif %}
+        <input name="{{ inp.key }}" type="number" step="any" required>
+      </label>
+      {% endfor %}
+      <div class="form-actions" style="margin-top:10px">
+        <button class="btn primary" type="submit">Calculate</button>
+      </div>
+    </form>
+
+    <div id="result-box" style="display:none;margin-top:14px;padding:14px;
+         border:1px solid #a7f3d0;background:#ecfdf5;border-radius:10px">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+                  color:#065f46;font-weight:800">Result</div>
+      <div style="font-size:28px;font-family:var(--mono);color:#065f46;margin:4px 0"
+           id="result-value">—</div>
+      <div style="font-size:12px;color:#334155" id="result-note"></div>
+    </div>
+    <div id="error-box" class="alert danger" style="display:none;margin-top:12px"></div>
+
+    <hr style="margin:18px 0;border:0;border-top:1px solid var(--border)">
+
+    {% if installed %}
+    <div class="alert success">
+      ✅ Installed into your project as <b>{{ f.name }}</b>.
+      It auto-calculates on every data save.
+    </div>
+    <form method="post" action="{{ url_for('formula_uninstall', fid=installed.id) }}"
+          onsubmit="return confirm('Uninstall this formula? Existing calculated values stay.')">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="btn danger">Uninstall</button>
+    </form>
+    {% else %}
+    <h2>Install into my project</h2>
+    <p class="muted">Map each input to one of your parameters. From then on,
+    every time you save participant data, this formula runs automatically.</p>
+    <a class="btn primary" href="{{ url_for('formula_library_install', fid=f.id) }}">
+      Install with mapping →
+    </a>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+const CSRF = "{{ csrf_token() }}";
+const FORMULA_ID = "{{ f.id }}";
+document.getElementById('calc-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const body = new FormData();
+  body.append('_csrf', CSRF);
+  new FormData(e.target).forEach((v, k) => body.append(k, v));
+  const r = await fetch(`/formulas/library/${FORMULA_ID}/compute`, { method: 'POST', body });
+  const d = await r.json();
+  const ok = document.getElementById('result-box');
+  const err = document.getElementById('error-box');
+  if (d.error) {
+    ok.style.display = 'none';
+    err.style.display = 'block';
+    err.textContent = d.error;
+    return;
+  }
+  err.style.display = 'none';
+  ok.style.display = 'block';
+  document.getElementById('result-value').textContent =
+    d.result + (d.unit && d.unit !== '—' ? ' ' + d.unit : '');
+  document.getElementById('result-note').textContent =
+    (d.reference ? 'Reference: ' + d.reference + '  ·  ' : '') +
+    (d.source ? 'Source: ' + d.source : '');
+});
+</script>
+
+{% endblock %}

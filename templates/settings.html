@@ -1,0 +1,725 @@
+{% extends "base.html" %}
+{% block title %}Settings · {{ app_name }}{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/gradients.css') }}">
+
+<style>
+/* ══════════════════════════════════════════════════════════════
+   Settings — self-contained. Ghost text eliminated.
+   ══════════════════════════════════════════════════════════════ */
+.sf2-tabs {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  margin: 0 0 20px; padding: 6px;
+  background: #ffffff; border: 1px solid #e5e9ef;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15,23,42,.03);
+}
+.sf2-tabs a {
+  padding: 9px 16px; border-radius: 8px;
+  font-weight: 600; font-size: 13px;
+  color: #475569; text-decoration: none;
+  transition: background .12s, color .12s;
+}
+.sf2-tabs a:hover { background: #f1f5f9; color: #0f172a; }
+.sf2-tabs a.active { background: #0f766e; color: #ffffff; }
+
+.sf2-card {
+  background: #ffffff;
+  border: 1px solid #e5e9ef;
+  border-radius: 14px;
+  padding: 24px 26px;
+  box-shadow: 0 1px 3px rgba(15,23,42,.04);
+}
+
+.sf2-heading {
+  font-size: 15px; font-weight: 800; color: #0f172a;
+  margin: 26px 0 12px; padding-bottom: 8px;
+  border-bottom: 2px solid #0f766e;
+  display: flex; align-items: center; gap: 8px;
+}
+.sf2-heading:first-child { margin-top: 0; }
+.sf2-heading::before {
+  content: ""; width: 4px; height: 16px;
+  background: #0f766e; border-radius: 2px;
+}
+
+/* ─── Picker block ─── */
+.sf2-picker {
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #e5e9ef;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.sf2-picker-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.sf2-picker-info {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.sf2-picker-label {
+  font-size: 13.5px; font-weight: 700;
+  color: #0f172a; line-height: 1.25;
+}
+.sf2-picker-desc {
+  font-size: 11.5px; color: #94a3b8;
+  margin-top: 3px; line-height: 1.3;
+}
+
+.sf2-picker-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ─── Swatch — pure button, native input fully hidden ─── */
+.sf2-swatch {
+  display: block;
+  width: 64px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  border: 1px solid #cfd6df;
+  background: #ffffff;
+  padding: 3px;
+  box-sizing: border-box;
+  cursor: pointer;
+  outline: none;
+}
+.sf2-swatch:hover { border-color: #0f766e; }
+.sf2-swatch:active { transform: scale(.98); }
+.sf2-swatch-color {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  pointer-events: none;
+}
+
+/* Native colour input — completely hidden from view and DOM layout */
+.sf2-native-input {
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  border: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Hex input — clean, isolated */
+.sf2-hex {
+  width: 116px;
+  height: 44px;
+  padding: 0 10px;
+  border: 1px solid #cfd6df;
+  border-radius: 8px;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+}
+.sf2-hex:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15,118,110,.15);
+}
+
+/* Gradient picker button */
+.sf2-grad-btn {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #cfd6df;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 17px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+}
+.sf2-grad-btn:hover { border-color: #0f766e; background: #f0fdf4; }
+.sf2-grad-btn.active { border-color: #0f766e; background: #ecfdf5; }
+
+/* ─── PREVIEW BAR (always visible) ─── */
+.sf2-bar {
+  margin-top: 12px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid #e5e9ef;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+}
+.sf2-bar-label {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.9);
+  text-shadow: 0 1px 2px rgba(0,0,0,.4);
+  pointer-events: none;
+}
+.sf2-bar-clear {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #dc2626;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+}
+.sf2-bar-clear:hover { background: #b91c1c; }
+
+/* ─── Modal ─── */
+.sf2-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(15,23,42,.6);
+  padding: 20px;
+  overflow-y: auto;
+}
+.sf2-modal.open { display: block; }
+.sf2-modal-card {
+  background: #ffffff;
+  border-radius: 16px;
+  max-width: 960px;
+  margin: 30px auto;
+  padding: 22px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+.sf2-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.sf2-modal-head h3 { margin: 0; font-size: 17px; color: #0f172a; }
+.sf2-modal-close {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid #e5e9ef;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 15px;
+  color: #64748b;
+}
+.sf2-modal-close:hover { background: #fef2f2; color: #dc2626; border-color: #dc2626; }
+.sf2-modal-search {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #cfd6df;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  box-sizing: border-box;
+}
+.sf2-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 4px;
+}
+.sf2-modal-cell {
+  height: 56px;
+  border-radius: 9px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform .12s, border-color .12s;
+}
+.sf2-modal-cell:hover {
+  transform: scale(1.08);
+  border-color: #0f766e;
+  z-index: 1;
+}
+.sf2-modal-cell.sel {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15,118,110,.3);
+}
+.sf2-modal-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: #f1f5f9;
+  border-radius: 20px;
+}
+</style>
+
+<div class="pagehead">
+  <div><h1>Settings</h1><p>Workspace configuration.</p></div>
+</div>
+
+<div class="sf2-tabs">
+  <a href="?section=branding"   class="{% if section=='branding'   %}active{% endif %}">Branding</a>
+  <a href="?section=appearance" class="{% if section=='appearance' %}active{% endif %}">Appearance</a>
+  <a href="?section=text"       class="{% if section=='text'       %}active{% endif %}">Text</a>
+  <a href="?section=interface"  class="{% if section=='interface'  %}active{% endif %}">Interface</a>
+  <a href="?section=login"      class="{% if section=='login'      %}active{% endif %}">Login</a>
+  <a href="?section=security"   class="{% if section=='security'   %}active{% endif %}">Security</a>
+</div>
+
+{# ═══════════════════════════════════════════════════════════════
+   PICKER MACRO
+   ═══════════════════════════════════════════════════════════════ #}
+{% macro picker(field, label, desc, current, current_grad, allow_grad) %}
+<div class="sf2-picker" data-sf2="{{ field }}">
+  <div class="sf2-picker-top">
+    <div class="sf2-picker-info">
+      <div class="sf2-picker-label">{{ label }}</div>
+      <div class="sf2-picker-desc">{{ desc }}</div>
+    </div>
+    <div class="sf2-picker-controls">
+
+      {# Visible rectangular swatch — pure CSS, no native input inside #}
+      <button type="button" class="sf2-swatch"
+              data-sf2-open="{{ field }}"
+              aria-label="Pick colour">
+        <span class="sf2-swatch-color" data-sf2-color="{{ field }}"
+              style="background: {{ current }}"></span>
+      </button>
+
+      <input type="text" class="sf2-hex" maxlength="7"
+             value="{{ current }}"
+             data-sf2-hex="{{ field }}">
+
+      {% if allow_grad %}
+      <button type="button" class="sf2-grad-btn"
+              data-sf2-grad-btn="{{ field }}"
+              title="Pick a gradient">🎨</button>
+      <input type="hidden" name="{{ field }}_gradient"
+             data-sf2-grad-input="{{ field }}"
+             value="{{ current_grad or '' }}">
+      {% endif %}
+
+      {# The actual colour input lives OUTSIDE the swatch, hidden off-DOM #}
+      <input type="color" name="{{ field }}"
+             value="{{ current }}"
+             data-sf2-input="{{ field }}"
+             class="sf2-native-input">
+    </div>
+  </div>
+
+  {# Preview bar — always visible #}
+  <div class="sf2-bar"
+       data-sf2-bar="{{ field }}"
+       style="{% if current_grad %}background: {{ current_grad }};{% else %}background: {{ current }};{% endif %}">
+    <span class="sf2-bar-label" data-sf2-bar-label="{{ field }}">
+      {% if current_grad %}GRADIENT{% else %}SOLID{% endif %}
+    </span>
+    {% if allow_grad and current_grad %}
+    <button type="button" class="sf2-bar-clear"
+            data-sf2-grad-clear="{{ field }}">✕</button>
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{# ═══════════════════════════════════════════════════════════════
+   BRANDING
+   ═══════════════════════════════════════════════════════════════ #}
+{% if section == 'branding' %}
+<div class="sf2-card">
+  <form method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="section" value="branding">
+    <div class="sf2-heading">Site identity</div>
+    <div class="form-grid">
+      <label>Application name <input name="app_name" value="{{ settings.get('app_name','') }}"></label>
+      <label>Tagline <input name="app_tagline" value="{{ settings.get('app_tagline','') }}"></label>
+      <label>Institution <input name="institution" value="{{ settings.get('institution','') }}"></label>
+      <label>Department <input name="department" value="{{ settings.get('department','') }}"></label>
+      <label class="full">Copyright line <input name="copyright" value="{{ settings.get('copyright','') }}"></label>
+    </div>
+    <div class="form-actions"><button class="btn primary">Save branding</button></div>
+  </form>
+</div>
+{% endif %}
+
+{# ═══════════════════════════════════════════════════════════════
+   APPEARANCE
+   ═══════════════════════════════════════════════════════════════ #}
+{% if section == 'appearance' %}
+<div class="sf2-card">
+  <form method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="section" value="appearance">
+
+    <div class="sf2-heading">Brand colours</div>
+    {{ picker('ui_primary', 'Primary', 'Buttons, active states',
+              settings.get('ui_primary','#059669'),
+              settings.get('ui_primary_gradient',''), True) }}
+    {{ picker('ui_accent', 'Accent', 'Badges, highlights',
+              settings.get('ui_accent','#14b8a6'),
+              settings.get('ui_accent_gradient',''), True) }}
+
+    <div class="sf2-heading">Surfaces</div>
+    {{ picker('ui_page_bg', 'Page background', 'Main app canvas',
+              settings.get('ui_page_bg','#f7f9fb'),
+              settings.get('ui_page_bg_gradient',''), True) }}
+    {{ picker('card_bg', 'Card background', 'Panels and cards',
+              settings.get('card_bg','#ffffff'),
+              settings.get('card_bg_gradient',''), True) }}
+
+    <div class="sf2-heading">Topbar</div>
+    {{ picker('topbar_bg', 'Topbar background', 'Header bar',
+              settings.get('topbar_bg','#ffffff'),
+              settings.get('topbar_bg_gradient',''), True) }}
+
+    <div class="sf2-heading">Sidebar</div>
+    {{ picker('sidebar_bg', 'Sidebar background', 'Left navigation',
+              settings.get('sidebar_bg','#ffffff'),
+              settings.get('sidebar_bg_gradient',''), True) }}
+
+    <div class="form-actions" style="margin-top:22px">
+      <button class="btn primary">Save appearance</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+{# ═══════════════════════════════════════════════════════════════
+   TEXT
+   ═══════════════════════════════════════════════════════════════ #}
+{% if section == 'text' %}
+<div class="sf2-card">
+  <form method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="section" value="text">
+
+    <div class="sf2-heading">Content</div>
+    {{ picker('text_color', 'Body text', 'Paragraphs, list items',
+              settings.get('text_color','#0f172a'), '', False) }}
+    {{ picker('heading_color', 'Headings', 'H1–H6 titles',
+              settings.get('heading_color','#0f172a'), '', False) }}
+    {{ picker('muted_color', 'Muted / helper text', 'Hints, timestamps',
+              settings.get('muted_color','#64748b'), '', False) }}
+
+    <div class="sf2-heading">Links &amp; navigation</div>
+    {{ picker('link_color', 'Link text', 'Clickable links',
+              settings.get('link_color','#059669'), '', False) }}
+    {{ picker('sidebar_text', 'Sidebar link text', 'Navigation items',
+              settings.get('sidebar_text','#334155'), '', False) }}
+
+    <div class="sf2-heading">Topbar</div>
+    {{ picker('topbar_text', 'Topbar title', 'App name in topbar',
+              settings.get('topbar_text','#0f172a'), '', False) }}
+
+    <div class="form-actions" style="margin-top:22px">
+      <button class="btn primary">Save text colours</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+{# ═══════════════════════════════════════════════════════════════
+   INTERFACE
+   ═══════════════════════════════════════════════════════════════ #}
+{% if section == 'interface' %}
+<div class="sf2-card">
+  <form method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="section" value="interface">
+    <div class="sf2-heading">Layout</div>
+    <div class="form-grid">
+      <label>Sidebar width (px)
+        <input type="number" name="ui_sidebar_w" min="200" max="340" step="10" value="{{ settings.get('ui_sidebar_w','240') }}">
+      </label>
+      <label>Base font size (px)
+        <input type="number" name="ui_font_size" min="12" max="18" step="1" value="{{ settings.get('ui_font_size','14') }}">
+      </label>
+      <label>Background opacity (%)
+        <input type="number" name="ui_bg_opacity" min="30" max="100" step="5" value="{{ settings.get('ui_bg_opacity','100') }}">
+      </label>
+      <label>Card opacity (%)
+        <input type="number" name="ui_card_opacity" min="30" max="100" step="5" value="{{ settings.get('ui_card_opacity','100') }}">
+      </label>
+    </div>
+    <div class="form-actions"><button class="btn primary">Save interface</button></div>
+  </form>
+</div>
+{% endif %}
+
+{# ═══════════════════════════════════════════════════════════════
+   LOGIN
+   ═══════════════════════════════════════════════════════════════ #}
+{% if section == 'login' %}
+<div class="sf2-card">
+  <form method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="section" value="login">
+    <div class="sf2-heading">Login page</div>
+    <div class="form-grid">
+      <label class="full">Title <input name="login_title" value="{{ settings.get('login_title','Sign in') }}"></label>
+      <label class="full">Subtitle <input name="login_subtitle" value="{{ settings.get('login_subtitle','') }}"></label>
+    </div>
+
+    <div class="sf2-heading">Background</div>
+    {{ picker('login_bg', 'Login background', 'Solid or gradient',
+              settings.get('login_bg','#f7f9fb'),
+              settings.get('login_bg_gradient',''), True) }}
+
+    <div class="form-actions" style="margin-top:22px">
+      <button class="btn primary">Save login settings</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+{# ═══════════════════════════════════════════════════════════════
+   SECURITY
+   ═══════════════════════════════════════════════════════════════ #}
+{% if section == 'security' %}
+<div class="sf2-card">
+  <form method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="section" value="security">
+    <div class="sf2-heading">Session &amp; login limits</div>
+    <div class="form-grid">
+      <label>Session lifetime (hours)
+        <input type="number" name="session_hours" min="1" max="72" value="{{ settings.get('session_hours','12') }}">
+      </label>
+      <label>Remember-me lifetime (days)
+        <input type="number" name="remember_days" min="1" max="365" value="{{ settings.get('remember_days','30') }}">
+      </label>
+      <label>Max failed login attempts
+        <input type="number" name="login_max_attempts" min="3" max="20" value="{{ settings.get('login_max_attempts','5') }}">
+      </label>
+      <label>Login window (minutes)
+        <input type="number" name="login_window_minutes" min="1" max="120" value="{{ settings.get('login_window_minutes','15') }}">
+      </label>
+    </div>
+    <div class="form-actions"><button class="btn primary">Save security settings</button></div>
+  </form>
+</div>
+{% endif %}
+
+{# ═══════════════════════════════════════════════════════════════
+   GRADIENT MODAL
+   ═══════════════════════════════════════════════════════════════ #}
+{% if section in ('appearance', 'login') %}
+<div class="sf2-modal" id="sf2-modal">
+  <div class="sf2-modal-card">
+    <div class="sf2-modal-head">
+      <h3>Choose a gradient <span class="sf2-modal-count" id="sf2-modal-count">3900</span></h3>
+      <button type="button" class="sf2-modal-close" id="sf2-modal-close">✕</button>
+    </div>
+    <input type="search" class="sf2-modal-search" id="sf2-modal-search"
+           placeholder="Search gradients…">
+    <div class="sf2-modal-grid" id="sf2-modal-grid">
+      {% for i in range(1, 3901) %}
+      <div class="sf2-modal-cell g-{{ '%04d'|format(i) }}" data-num="{{ i }}"></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ═══════════════════════════════════════════════════════════════
+   INLINE JS — everything scoped to this page
+   ═══════════════════════════════════════════════════════════════ #}
+<script>
+(function() {
+  // ══════════════════════════════════════════════════════════
+  // Colour wheel → hex + swatch + bar
+  // ══════════════════════════════════════════════════════════
+  document.querySelectorAll('[data-sf2-input]').forEach(function(input) {
+    input.addEventListener('input', function() {
+      var key = this.dataset.sf2Input;
+      var v = this.value;
+
+      var colorEl = document.querySelector('[data-sf2-color="' + key + '"]');
+      var hexEl = document.querySelector('[data-sf2-hex="' + key + '"]');
+      var barEl = document.querySelector('[data-sf2-bar="' + key + '"]');
+      var barLabel = document.querySelector('[data-sf2-bar-label="' + key + '"]');
+      var gradInput = document.querySelector('[data-sf2-grad-input="' + key + '"]');
+
+      if (colorEl) colorEl.style.background = v;
+      if (hexEl) hexEl.value = v.toUpperCase();
+
+      // Bar only updates if no gradient is set
+      if (!gradInput || !gradInput.value) {
+        if (barEl) barEl.style.background = v;
+        if (barLabel) barLabel.textContent = 'SOLID';
+      }
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // Click swatch → open the hidden native picker
+  // ══════════════════════════════════════════════════════════
+  document.querySelectorAll('[data-sf2-open]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var key = this.dataset.sf2Open;
+      var native = document.querySelector('[data-sf2-input="' + key + '"]');
+      if (native && native.showPicker) {
+        try { native.showPicker(); } catch(e) { native.click(); }
+      } else if (native) {
+        native.click();
+      }
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // Hex input → wheel + swatch + bar
+  // ══════════════════════════════════════════════════════════
+  document.querySelectorAll('[data-sf2-hex]').forEach(function(hex) {
+    hex.addEventListener('input', function() {
+      var key = this.dataset.sf2Hex;
+      var v = this.value.trim();
+      if (!v.startsWith('#')) v = '#' + v;
+      if (!/^#[0-9a-fA-F]{6}$/.test(v)) return;
+
+      var wheel = document.querySelector('[data-sf2-input="' + key + '"]');
+      var colorEl = document.querySelector('[data-sf2-color="' + key + '"]');
+      var barEl = document.querySelector('[data-sf2-bar="' + key + '"]');
+      var barLabel = document.querySelector('[data-sf2-bar-label="' + key + '"]');
+      var gradInput = document.querySelector('[data-sf2-grad-input="' + key + '"]');
+
+      if (wheel) wheel.value = v;
+      if (colorEl) colorEl.style.background = v;
+
+      if (!gradInput || !gradInput.value) {
+        if (barEl) barEl.style.background = v;
+        if (barLabel) barLabel.textContent = 'SOLID';
+      }
+    });
+    hex.addEventListener('blur', function() {
+      var v = this.value.trim();
+      if (!v.startsWith('#')) v = '#' + v;
+      if (/^#[0-9a-fA-F]{6}$/.test(v)) this.value = v.toUpperCase();
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // Gradient modal
+  // ══════════════════════════════════════════════════════════
+  var modal = document.getElementById('sf2-modal');
+  if (!modal) return;
+
+  var grid = document.getElementById('sf2-modal-grid');
+  var count = document.getElementById('sf2-modal-count');
+  var search = document.getElementById('sf2-modal-search');
+  var closeBtn = document.getElementById('sf2-modal-close');
+  var currentField = null;
+
+  function cacheGradients() {
+    grid.querySelectorAll('.sf2-modal-cell').forEach(function(cell) {
+      if (!cell.dataset.css) cell.dataset.css = getComputedStyle(cell).backgroundImage;
+    });
+  }
+
+  document.querySelectorAll('[data-sf2-grad-btn]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      currentField = this.dataset.sf2GradBtn;
+      cacheGradients();
+      modal.classList.add('open');
+      search.value = '';
+      search.focus();
+      var inp = document.querySelector('[data-sf2-grad-input="' + currentField + '"]');
+      var cur = inp ? inp.value : '';
+      grid.querySelectorAll('.sf2-modal-cell').forEach(function(c) {
+        c.classList.toggle('sel', c.dataset.css === cur);
+      });
+    });
+  });
+
+  closeBtn.addEventListener('click', function() { modal.classList.remove('open'); });
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) modal.classList.remove('open');
+  });
+
+  grid.addEventListener('click', function(e) {
+    var cell = e.target.closest('.sf2-modal-cell');
+    if (!cell || !currentField) return;
+    var css = cell.dataset.css;
+
+    var inp = document.querySelector('[data-sf2-grad-input="' + currentField + '"]');
+    if (inp) inp.value = css;
+
+    var barEl = document.querySelector('[data-sf2-bar="' + currentField + '"]');
+    var barLabel = document.querySelector('[data-sf2-bar-label="' + currentField + '"]');
+    if (barEl) barEl.style.background = css;
+    if (barLabel) barLabel.textContent = 'GRADIENT';
+
+    if (barEl && !barEl.querySelector('[data-sf2-grad-clear]')) {
+      var clear = document.createElement('button');
+      clear.type = 'button';
+      clear.className = 'sf2-bar-clear';
+      clear.setAttribute('data-sf2-grad-clear', currentField);
+      clear.textContent = '✕';
+      clear.addEventListener('click', function() { clearGradient(currentField); });
+      barEl.appendChild(clear);
+    }
+
+    modal.classList.remove('open');
+  });
+
+  search.addEventListener('input', function() {
+    var q = this.value.trim().toLowerCase();
+    var visible = 0;
+    grid.querySelectorAll('.sf2-modal-cell').forEach(function(cell) {
+      var match = !q || cell.dataset.num.indexOf(q) !== -1;
+      cell.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    count.textContent = visible;
+  });
+
+  function clearGradient(field) {
+    var inp = document.querySelector('[data-sf2-grad-input="' + field + '"]');
+    if (inp) inp.value = '';
+    var barEl = document.querySelector('[data-sf2-bar="' + field + '"]');
+    var barLabel = document.querySelector('[data-sf2-bar-label="' + field + '"]');
+    var wheel = document.querySelector('[data-sf2-input="' + field + '"]');
+    if (barEl && wheel) barEl.style.background = wheel.value;
+    if (barLabel) barLabel.textContent = 'SOLID';
+    var clear = barEl ? barEl.querySelector('[data-sf2-grad-clear]') : null;
+    if (clear) clear.remove();
+  }
+
+  document.querySelectorAll('[data-sf2-grad-clear]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      clearGradient(this.dataset.sf2GradClear);
+    });
+  });
+})();
+</script>
+
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Health · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>System Health</h1><p>Database integrity and required checks.</p></div>
+  <a class="btn" href="{{ url_for('backups_page') }}">Backups</a>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <h2>Checks</h2>
+    {% for label, ok in checks %}
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9">
+      <span>{{ label }}</span>
+      {% if ok %}
+        <span class="badge success">✅ Pass</span>
+      {% else %}
+        <span class="badge danger">❌ Fail</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+    {% if missing %}
+    <div class="alert warning" style="margin-top:12px">
+      Missing tables: {{ missing|join(', ') }}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Details</h2>
+    <div class="status-list">
+      <div>Database path <b style="font-size:11px">{{ db_path }}</b></div>
+      <div>Integrity result <b>{{ integrity }}</b></div>
+      <div>Total tables <b>{{ n_tables }}</b></div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+  <h2>Tables</h2>
+  <div style="display:flex;flex-wrap:wrap;gap:6px">
+    {% for t in tables %}
+      <span class="badge">{{ t }}</span>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

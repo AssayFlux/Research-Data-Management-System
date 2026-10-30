@@ -1,0 +1,37 @@
+{# 100-gradient picker. Usage:
+   <div class="grad-picker" data-target="bg_field_id"></div>  #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/gradients.css') }}">
+<style>
+.grad-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px;
+  max-height:340px;overflow:auto;padding:8px;border:1px solid var(--border);
+  border-radius:10px;background:#fafbfc}
+.grad-cell{height:52px;border-radius:8px;border:2px solid transparent;cursor:pointer;
+  position:relative;transition:.12s}
+.grad-cell:hover{transform:scale(1.06)}
+.grad-cell.sel{border-color:#0f766e;box-shadow:0 0 0 2px #a7f3d0}
+.grad-cell span{position:absolute;bottom:2px;right:4px;font-size:9px;color:#fff;
+  font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+</style>
+<script>
+document.querySelectorAll('.grad-picker').forEach(el => {
+  const target = document.getElementById(el.dataset.target);
+  const current = target ? target.value : '';
+  for (let i = 1; i <= 100; i++) {
+    const cls = 'g-' + String(i).padStart(2, '0');
+    const cell = document.createElement('div');
+    cell.className = 'grad-cell ' + cls;
+    cell.innerHTML = '<span>' + i + '</span>';
+    if (target && current && current.includes('--bg-grad') === false && target.dataset.cur === cls) {
+      cell.classList.add('sel');
+    }
+    cell.onclick = () => {
+      if (!target) return;
+      const computed = getComputedStyle(cell).backgroundImage;
+      target.value = computed;
+      el.querySelectorAll('.grad-cell').forEach(x => x.classList.remove('sel'));
+      cell.classList.add('sel');
+    };
+    el.appendChild(cell);
+  }
+});
+</script>

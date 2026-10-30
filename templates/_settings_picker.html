@@ -1,0 +1,71 @@
+{#
+  Unified colour picker macro.
+  Usage:
+    {% with field='ui_primary', label='Primary', desc='...',
+            current=settings.get('ui_primary','#059669'),
+            current_grad=settings.get('ui_primary_gradient',''),
+            show_grad=True %}
+      {% include '_settings_picker.html' %}
+    {% endwith %}
+#}
+{% set _sg = show_grad|default(False) %}
+<div class="sp" data-sp-field="{{ field }}" data-sp-gradient="{{ '1' if _sg else '0' }}">
+
+  {# ─── Solid mode row ─── #}
+  <div class="sp-row" data-sp-mode="solid">
+    <div class="sp-meta">
+      <div class="sp-label">{{ label }}</div>
+      {% if desc %}<div class="sp-desc">{{ desc }}</div>{% endif %}
+    </div>
+
+    <label class="sp-wheel-wrap" title="Pick colour">
+      <input type="color" name="{{ field }}"
+             value="{{ current or '#000000' }}"
+             data-sp-input="{{ field }}"
+             class="sp-wheel-input">
+      <span class="sp-wheel" data-sp-wheel="{{ field }}"
+            style="background:{{ current or '#000000' }}"></span>
+    </label>
+
+    <input type="text" class="sp-hex" maxlength="7"
+           value="{{ current or '#000000' }}"
+           data-sp-hex="{{ field }}"
+           autocomplete="off" spellcheck="false">
+  </div>
+
+  {# ─── Gradient mode row (only when enabled) ─── #}
+  {% if _sg %}
+  <div class="sp-grad-row" data-sp-mode="gradient" style="display:none">
+    <div class="sp-meta">
+      <div class="sp-label">{{ label }} — gradient</div>
+      <div class="sp-desc">Choose from 3900 presets below</div>
+    </div>
+
+    <div class="sp-grad-preview" data-sp-gradpreview="{{ field }}"
+         style="background:{{ current_grad or current }}"></div>
+
+    <input type="hidden" name="{{ field }}_gradient"
+           data-sp-gradinput="{{ field }}"
+           value="{{ current_grad or '' }}">
+
+    <button type="button" class="sp-grad-toggle"
+            onclick="spOpenGrad('{{ field }}')">
+      Browse
+    </button>
+    <button type="button" class="sp-grad-clear"
+            onclick="spClearGrad('{{ field }}')"
+            title="Clear gradient">✕</button>
+  </div>
+  {% endif %}
+
+  {# ─── Mode toggle (only when gradient enabled) ─── #}
+  {% if _sg %}
+  <div class="sp-modes">
+    <button type="button" class="sp-mode-btn active" data-sp-mode-btn="solid"
+            onclick="spSetMode('{{ field }}', 'solid')">Solid</button>
+    <button type="button" class="sp-mode-btn" data-sp-mode-btn="gradient"
+            onclick="spSetMode('{{ field }}', 'gradient')">Gradient</button>
+  </div>
+  {% endif %}
+
+</div>

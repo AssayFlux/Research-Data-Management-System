@@ -1,0 +1,64 @@
+{% from "_print_macros.html" import print_styles, print_header, print_footer, print_toolbar %}
+{% set cfg = print_cfg('group_comparison') %}
+<!doctype html><html><head><meta charset="utf-8">
+<title>Group comparison — {{ p.name }}</title>
+{{ print_styles(cfg) }}
+</head><body>
+{{ print_toolbar() }}
+<div class="cp-wrap">
+  {{ print_header(cfg, app_name) }}
+
+  <div class="cp-body">
+    <h2>{{ s.study_code }} — {{ p.name }} by group</h2>
+
+    {% if chart %}
+    <div style="text-align:center;margin:12px 0">
+      <img src="{{ chart }}" style="max-width:100%;height:auto">
+    </div>
+    {% endif %}
+
+    <h2>Group statistics</h2>
+    <table>
+      <thead><tr><th>Group</th><th class="num">N</th>
+        <th class="num">Mean</th><th class="num">SD</th>
+        <th class="num">Median</th><th class="num">IQR</th>
+        <th class="num">Min</th><th class="num">Max</th></tr></thead>
+      <tbody>
+        {% for gname, st in group_stats.items() %}
+        <tr>
+          <td><b>{{ gname }}</b></td>
+          <td class="num">{{ st.n or 0 }}</td>
+          <td class="num">{{ st.mean if st.n else '—' }}</td>
+          <td class="num">{{ st.sd if st.n else '—' }}</td>
+          <td class="num">{{ st.median if st.n else '—' }}</td>
+          <td class="num">{{ st.iqr if st.n else '—' }}</td>
+          <td class="num">{{ st.min if st.n else '—' }}</td>
+          <td class="num">{{ st.max if st.n else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Comparison test</h2>
+    {% if result and result.test %}
+    <table>
+      <tbody>
+        <tr><th style="width:30%">Test</th><td><b>{{ result.test }}</b></td></tr>
+        <tr><th>Group 1</th><td>{{ result.g1 }} (n = {{ result.n_a }})</td></tr>
+        <tr><th>Group 2</th><td>{{ result.g2 }} (n = {{ result.n_b }})</td></tr>
+        <tr><th>Statistic</th><td>{{ result.statistic }}</td></tr>
+        <tr><th>p-value</th><td><b>{{ result.p }}</b>
+          {% if result.p < 0.05 %}<span style="color:#059669"> (significant)</span>
+          {% else %}<span style="color:#64748b"> (not significant)</span>{% endif %}
+        </td></tr>
+        {% if result.note %}<tr><th>Why this test</th><td>{{ result.note }}</td></tr>{% endif %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#64748b">Not enough groups or values for comparison.</p>
+    {% endif %}
+  </div>
+
+  {{ print_footer(cfg) }}
+</div>
+</body></html>

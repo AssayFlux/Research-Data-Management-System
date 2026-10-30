@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Reliability · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>Inter-rater reliability</h1>
+    <p>Kappa, weighted kappa, ICC(2,1), ICC(3,1), Bland-Altman.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="alert info" style="margin-top:0">
+    <b>How it works:</b> This page compares two measurements of the <b>same participant</b>
+    for the <b>same parameter</b>. The two measurements could come from:
+    <ul style="margin:6px 0 0;padding-left:20px;line-height:1.7;font-size:13px">
+      <li><b>Two different raters</b> measuring independently</li>
+      <li><b>Re-entry</b> of the same measurement by one person (double data entry)</li>
+    </ul>
+    <p style="margin:6px 0 0;font-size:12.5px">
+      You need at least <b>3 participants</b>, each with <b>2 measurements</b>.
+    </p>
+  </div>
+
+  <div class="form-grid" style="margin-top:14px">
+    <label>Study
+      <select id="study_id">
+        <option value="">All studies</option>
+        {% for s in studies %}<option value="{{ s.id }}">{{ s.study_code }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Parameter
+      <select id="param_id">
+        {% for p in params %}
+        <option value="{{ p.id }}">{{ p.category }} · {{ p.name }} ({{ p.code }}) — {{ p.data_type }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </div>
+  <div class="form-actions" style="margin-top:10px">
+    <button class="btn primary" onclick="runReliability()">Compute</button>
+  </div>
+</div>
+
+<div id="result-box" class="card" style="margin-top:12px">
+  <p class="muted" style="text-align:center;padding:30px 0">
+    Pick a parameter and click Compute.
+  </p>
+</div>
+
+<script>
+const CSRF = "{{ csrf_token() }}";
+
+function setLoading() {
+  document.getElementById("result-box").innerHTML =
+    '<div class="stat-result loading"></div>';
+}
+function setError(msg) {
+  document.getElementById("result-box").innerHTML = `
+    <div class="alert warning">${msg}</div>
+    <p style="margin-top:12px;font-size:12.5px;color:var(--muted)">
+      <b>How to fix:</b> Enter the same participant's measurement twice.
+      Open the participant's page → "Add data record" → enter the same parameter again.
+      Repeat for at least 3 participants.
+    </p>
+  `;
+}
+
+function fmtNum(v, dec) {
+  if (v === null || v === undefined) return "—";
+  if (typeof v === "number") return v.toFixed(dec ?? 4);
+  return v;
+}
+
+async function runReliability() {
+  const body = new FormData();
+  body.append("_csrf", CSRF);
+  body.append("parameter_id", document.getElementById("param_id").value);
+  body.append("study_id", document.getElementById("study_id").value);
+  setLoading();
+  const r = await fetch("/reliability/compute", { method: "POST", body });
+  const d = await r.json();
+
+  if (d.error) {
+    setError(d.error);
+    return;
+  }
+
+  // Build professional result
+  let html = `
+    <div class="stat-hero">
+      <div class="stat-hero-label">Observations compared</div>
+      <div class="stat-hero-value">${d.n_pairs}</div>
+      <div class="stat-hero-sub">participants with two measurements each · data type: ${d.data_type}</div>
+    </div>
+  `;
+
+  // Show the summary of the data type
+  if (d.icc_2_1 && !d.icc_2_1.error) {
+    const icc1 = d.icc_2_1;
+    const icc2 = d.icc_3_1;
+    html += `
+      <div class="stat-section">
+        <div class="stat-section-title">Intraclass correlation</div>
+        <div class="stat-grid">
+          <div class="stat-tile">
+            <div class="stat-tile-label">ICC(2,1)</div>
+            <div class="stat-tile-value">${fmtNum(icc1.icc)}</div>
+            <div style="font-size:10.5px;color:#64748b;margin-top:3px">
+              ${icc1.interpretation}
+            </div>
+          </div>
+          ${icc2 && !icc2.error ? `
+          <div class="stat-tile">
+            <div class="stat-tile-label">ICC(3,1)</div>
+            <div class="stat-tile-value">${fmtNum(icc2.icc)}</div>
+            <div style="font-size:10.5px;color:#64748b;margin-top:3px">
+              ${icc2.interpretation}
+            </div>
+          </div>
+          ` : ''}
+        </div>
+        <p class="stat-note">
+          ICC(2,1) = absolute agreement (used when raters are randomly selected).
+          ICC(3,1) = consistency (used when the same raters measure everyone).
+        </p>
+      </div>
+    `;
+  }
+
+  if (d.bland_altman && !d.bland_altman.error) {
+    const ba = d.bland_altman;
+    html += `
+      <div class="stat-section">
+        <div class="stat-section-title">Bland-Altman agreement</div>
+        <table class="stat-table">
+          <tr><td>Mean difference</td><td>${fmtNum(ba.mean_difference, 3)}</td></tr>
+          <tr><td>SD of differences</td><td>${fmtNum(ba.sd_difference, 3)}</td></tr>
+          <tr><td>Lower limit of agreement</td><td>${fmtNum(ba.lower_loa, 3)}</td></tr>
+          <tr><td>Upper limit of agreement</td><td>${fmtNum(ba.upper_loa, 3)}</td></tr>
+        </table>
+        <p class="stat-note">
+          95% of differences between raters should fall between
+          ${fmtNum(ba.lower_loa, 2)} and ${fmtNum(ba.upper_loa, 2)}.
+        </p>
+      </div>
+    `;
+  }
+
+  if (d.kappa && !d.kappa.error) {
+    const k = d.kappa;
+    html += `
+      <div class="stat-section">
+        <div class="stat-section-title">Cohen's kappa</div>
+        <table class="stat-table">
+          <tr><td>Kappa</td><td>${fmtNum(k.kappa)}</td></tr>
+          <tr><td>Observed agreement</td><td>${(k.observed_agreement*100).toFixed(1)}%</td></tr>
+          <tr><td>Expected agreement</td><td>${(k.expected_agreement*100).toFixed(1)}%</td></tr>
+          <tr><td>Interpretation</td><td>${k.interpretation}</td></tr>
+        </table>
+      </div>
+    `;
+  }
+
+  if (d.weighted_kappa && !d.weighted_kappa.error) {
+    const wk = d.weighted_kappa;
+    html += `
+      <div class="stat-section">
+        <div class="stat-section-title">Weighted kappa (linear)</div>
+        <table class="stat-table">
+          <tr><td>Kappa</td><td>${fmtNum(wk.kappa)}</td></tr>
+        </table>
+      </div>
+    `;
+  }
+
+  // Sample view
+  if (d.sample && d.sample.length) {
+    html += `
+      <div class="stat-section">
+        <div class="stat-section-title">First few pairs compared</div>
+        <table class="stat-table">
+          <thead><tr>
+            <th style="text-align:left;color:#64748b;font-size:10px;text-transform:uppercase">Rater 1</th>
+            <th style="text-align:left;color:#64748b;font-size:10px;text-transform:uppercase">Rater 2</th>
+          </tr></thead>
+          <tbody>
+            ${d.sample.map(p => `<tr><td>${p.rater1}</td><td>${p.rater2}</td></tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  document.getElementById("result-box").innerHTML = html;
+}
+</script>
+
+{% endblock %}

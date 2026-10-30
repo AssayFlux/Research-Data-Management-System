@@ -1,0 +1,101 @@
+{% extends "base.html" %}{% block title %}Critical alerts · {{ app_name }}{% endblock %}
+{% block crumb %}<b>Critical alerts</b>{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Critical alerts</h1><p>{{ n_open }} open alert(s).</p></div>
+  <form method="post" action="{{ url_for('alerts_scan') }}" style="display:flex;gap:8px">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <button class="btn primary">🔁 Rescan all records</button>
+  </form>
+</div>
+
+{% if alerts %}
+<div class="card table-wrap">
+  <div class="cardhead"><h2>Open alerts</h2>
+    <form method="post" action="{{ url_for('alerts_ack_all') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="btn sm">Acknowledge all</button>
+    </form>
+  </div>
+  <table>
+    <thead><tr><th>When</th><th>Study</th><th>Participant</th>
+      <th>Parameter</th><th>Severity</th><th>Message</th><th></th></tr></thead>
+    <tbody>
+      {% for a in alerts %}
+      <tr>
+        <td><small>{{ a.created_at }}</small></td>
+        <td>{{ a.study_code or '—' }}</td>
+        <td>{{ a.participant_code or '—' }}</td>
+        <td>{{ a.pname or '—' }}</td>
+        <td><span class="badge {{ 'danger' if a.severity=='critical' else 'warning' }}">{{ a.severity }}</span></td>
+        <td>{{ a.message }}</td>
+        <td>
+          <form method="post" action="{{ url_for('alert_ack', aid=a.id) }}">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="btn sm">Acknowledge</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted">No open alerts. 🎉</p></div>
+{% endif %}
+
+<div class="card" style="margin-top:12px">
+  <h2>Add alert rule</h2>
+  <form method="post" action="{{ url_for('alert_rule_new') }}" class="form-grid">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <label>Parameter
+      <select name="parameter_id" required>
+        <option value="">— choose —</option>
+        {% for p in params %}<option value="{{ p.id }}">{{ p.name }} ({{ p.code }}){% if p.unit %} · {{ p.unit }}{% endif %}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Operator
+      <select name="operator">
+        {% for op, lbl in operators %}<option value="{{ op }}">{{ lbl|safe }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Value 1<input name="value1" type="number" step="any"></label>
+    <label>Value 2 (between)<input name="value2" type="number" step="any"></label>
+    <label>Severity
+      <select name="severity">
+        <option value="warning">Warning</option>
+        <option value="critical">Critical</option>
+        <option value="info">Info</option>
+      </select>
+    </label>
+    <label>Message (optional)<input name="message"></label>
+    <div class="form-actions full"><button class="btn primary">Add rule</button></div>
+  </form>
+</div>
+
+<div class="card" style="margin-top:12px">
+  <h2>Rules ({{ rules|length }})</h2>
+  {% for r in rules %}
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f5f9">
+    <div>
+      <b>{{ r.pname }}</b>
+      <span class="muted">{{ r.operator }} {{ r.value1 }}{% if r.value2 %} – {{ r.value2 }}{% endif %}</span>
+      <span class="badge {{ 'danger' if r.severity=='critical' else 'warning' }}">{{ r.severity }}</span>
+      {% if not r.active %}<span class="badge">disabled</span>{% endif %}
+      {% if r.message %}<div class="tiny muted">{{ r.message }}</div>{% endif %}
+    </div>
+    <div style="display:flex;gap:6px">
+      <form method="post" action="{{ url_for('alert_rule_toggle', rid=r.id) }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="btn sm">{% if r.active %}Disable{% else %}Enable{% endif %}</button>
+      </form>
+      <form method="post" action="{{ url_for('alert_rule_delete', rid=r.id) }}"
+            onsubmit="return confirm('Delete rule?')">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="btn sm danger">Delete</button>
+      </form>
+    </div>
+  </div>
+  {% else %}<p class="muted">No rules yet.</p>{% endfor %}
+</div>
+{% endblock %}

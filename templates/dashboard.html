@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Dashboard · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="dash-wrap">
+
+  {# ═══════════ HERO (compact) ═══════════ #}
+  <div class="d-hero">
+    <div class="d-hero-text">
+      <div class="d-hero-greet">Welcome back,</div>
+      <h1>
+        {{ display_name_of(current_user) }}
+        <span class="d-hero-role">{{ current_user.role }}</span>
+      </h1>
+      <p class="d-hero-sub">Your research data. Organized. Secure. Accessible.</p>
+    </div>
+    <div class="d-hero-art">🧪</div>
+  </div>
+
+  {# ═══════════ OVERVIEW ═══════════ #}
+  <div class="d-sect">
+    <span class="d-sect-ic">{{ icon('grid', 14, '#94a3b8', 2) }}</span>
+    <span class="d-sect-label">Overview</span>
+  </div>
+
+  <div class="d-kpi-grid">
+    {% set kpis = [
+      ('studies',      'Studies',      'flask',      '#0f766e', '#ecfdf5', url_for('studies_list')),
+      ('participants', 'Participants', 'users',      '#2563eb', '#eff6ff', url_for('participants_list')),
+      ('records',      'Records',      'file-text',  '#7c3aed', '#f3e8ff', url_for('records_list')),
+      ('parameters',   'Parameters',   'microscope', '#d97706', '#fffbeb', url_for('parameters_list')),
+      ('forms',        'Forms',        'clipboard',  '#0891b2', '#ecfeff', url_for('forms_list')),
+      ('formulas',     'Formulas',     'sigma',      '#ec4899', '#fce7f3', url_for('formulas_list'))
+    ] %}
+    {% for key, label, icon_name, color, bg, link in kpis %}
+    <a class="d-kpi" href="{{ link }}" style="--kpi-color:{{ color }};--kpi-bg:{{ bg }}">
+      <span class="d-kpi-ico">{{ icon(icon_name, 20, color, 1.9) }}</span>
+      <span class="d-kpi-num">{{ '{:,}'.format(counts[key]) }}</span>
+      <span class="d-kpi-label">{{ label }}</span>
+    </a>
+    {% endfor %}
+  </div>
+
+  {# ═══════════ QUICK ACTIONS (2-col mobile) ═══════════ #}
+  <div class="d-sect">
+    <span class="d-sect-ic">{{ icon('zap', 14, '#94a3b8', 2) }}</span>
+    <span class="d-sect-label">Quick actions</span>
+  </div>
+
+  <div class="d-qa-grid">
+    <a class="d-qa" href="{{ url_for('participant_new') }}">
+      <span class="d-qa-ico" style="background:#0f766e">{{ icon('user-plus', 18, '#ffffff', 2) }}</span>
+      <span class="d-qa-body">
+        <span class="d-qa-title">Add Participant</span>
+        <span class="d-qa-sub">Register a subject</span>
+      </span>
+    </a>
+
+    <a class="d-qa" href="{{ url_for('parameter_new') }}">
+      <span class="d-qa-ico" style="background:#7c3aed">{{ icon('sliders-horizontal', 18, '#ffffff', 2) }}</span>
+      <span class="d-qa-body">
+        <span class="d-qa-title">Add Parameter</span>
+        <span class="d-qa-sub">New variable</span>
+      </span>
+    </a>
+
+    <a class="d-qa" href="{{ url_for('forms_list') }}">
+      <span class="d-qa-ico" style="background:#2563eb">{{ icon('clipboard-list', 18, '#ffffff', 2) }}</span>
+      <span class="d-qa-body">
+        <span class="d-qa-title">Forms</span>
+        <span class="d-qa-sub">Build collection</span>
+      </span>
+    </a>
+
+    <a class="d-qa" href="{{ url_for('quality_page') }}">
+      <span class="d-qa-ico" style="background:#d97706">{{ icon('shield-check', 18, '#ffffff', 2) }}</span>
+      <span class="d-qa-body">
+        <span class="d-qa-title">Quality</span>
+        <span class="d-qa-sub">Validate data</span>
+      </span>
+    </a>
+
+    <a class="d-qa" href="{{ url_for('analysis_hub') }}">
+      <span class="d-qa-ico" style="background:#ec4899">{{ icon('activity', 18, '#ffffff', 2) }}</span>
+      <span class="d-qa-body">
+        <span class="d-qa-title">Analysis</span>
+        <span class="d-qa-sub">Run statistics</span>
+      </span>
+    </a>
+
+    <a class="d-qa" href="{{ url_for('settings_page') if current_user.role == 'ADMIN' else url_for('profile_password') }}">
+      <span class="d-qa-ico" style="background:#115e59">{{ icon('settings', 18, '#ffffff', 2) }}</span>
+      <span class="d-qa-body">
+        <span class="d-qa-title">Settings</span>
+        <span class="d-qa-sub">Preferences</span>
+      </span>
+    </a>
+  </div>
+
+  {# ═══════════ SYSTEM STATUS ═══════════ #}
+  <div class="d-sect">
+    <span class="d-sect-ic">{{ icon('shield-check', 14, '#94a3b8', 2) }}</span>
+    <span class="d-sect-label">System status</span>
+  </div>
+
+  <div class="d-sys-grid">
+    <div class="d-sys">
+      <span class="d-sys-ic" style="background:#ecfdf5">{{ icon('database', 14, '#059669', 2) }}</span>
+      <div class="d-sys-body">
+        <div class="d-sys-name">Database</div>
+        <div class="d-sys-sub">SQLite online</div>
+      </div>
+    </div>
+    <div class="d-sys">
+      <span class="d-sys-ic" style="background:#eff6ff">{{ icon('hard-drive', 14, '#2563eb', 2) }}</span>
+      <div class="d-sys-body">
+        <div class="d-sys-name">Backups</div>
+        <div class="d-sys-sub">Available</div>
+      </div>
+    </div>
+    <div class="d-sys">
+      <span class="d-sys-ic" style="background:#f3e8ff">{{ icon('scroll-text', 14, '#7c3aed', 2) }}</span>
+      <div class="d-sys-body">
+        <div class="d-sys-name">Audit log</div>
+        <div class="d-sys-sub">Active</div>
+      </div>
+    </div>
+    <div class="d-sys">
+      <span class="d-sys-ic" style="background:#fffbeb">{{ icon('lock', 14, '#d97706', 2) }}</span>
+      <div class="d-sys-body">
+        <div class="d-sys-name">CSRF</div>
+        <div class="d-sys-sub">Enabled</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

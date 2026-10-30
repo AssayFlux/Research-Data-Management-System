@@ -1,0 +1,473 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Quick Entry · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="qe-wrap">
+
+  <div class="pagehead">
+    <div>
+      <h1>{{ icon('zap', 22, '#0f766e', 2) }} Quick Entry</h1>
+      <p>Add a participant + full data + auto-classification in one page.</p>
+    </div>
+    <a class="btn" href="{{ url_for('participants_list') }}">All participants</a>
+  </div>
+
+  {% if saved %}
+  <div class="alert success" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <b>✓ Saved:</b> {{ saved.participant_code }} —
+      <span class="qe-ri-cls" data-cls="{{ saved.classification or 'Undetermined' }}">{{ saved.classification or 'Undetermined' }}</span>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <a class="btn sm primary" href="{{ url_for('print_quick_entry', pid=saved.id) }}"
+         target="_blank" style="background:#0f766e;color:#fff;font-weight:800">
+        🖨 Print full sheet
+      </a>
+      <a class="btn sm" href="{{ url_for('participant_detail', pid=saved.id) }}">Open</a>
+      <a class="btn sm" href="{{ url_for('export_participant', pid=saved.id, fmt='pdf') }}">📕 PDF</a>
+      <a class="btn sm" href="{{ url_for('participant_visits', pid=saved.id) }}">📅 Visits</a>
+      <a class="btn sm" href="{{ url_for('participant_specimens', pid=saved.id) }}">🧪 Specimens</a>
+    </div>
+  </div>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('quick_entry_save') }}" enctype="multipart/form-data" id="qe-form">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+    {# ─── TOP BAR: study + date ─── #}
+    <div class="qe-topbar">
+      <label>Study
+        <select name="study_id" id="qe-study" onchange="qeChangeStudy(this.value)">
+          {% for s in studies %}
+          <option value="{{ s.id }}" {% if s.id == sid %}selected{% endif %}>
+            {{ s.study_code }} — {{ s.title[:40] }}{% if s.title|length > 40 %}…{% endif %}
+          </option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Entry date
+        <input type="date" name="entry_date" id="qe-date" value="{{ now.strftime('%Y-%m-%d') }}">
+      </label>
+      <div style="font-size:11.5px;color:var(--muted);text-align:right;line-height:1.5">
+        <div><b>{{ study.study_code if study else '' }}</b></div>
+        <div>{{ study.title[:30] if study else '' }}</div>
+      </div>
+    </div>
+
+    {# ─── PARTICIPANT INFO (teal) ─── #}
+    <div class="qe-section qe-participant">
+      <div class="qe-section-head">
+        <span class="qe-ic">{{ icon('user-plus', 16, '#059669', 2) }}</span>
+        <h3>Participant information</h3>
+        <span class="qe-count">Step 1</span>
+      </div>
+      <div class="qe-section-body">
+        <div class="form-grid">
+          <label>Participant ID *
+            <input name="participant_code" id="qe-code" required
+                   placeholder="e.g. P001" autocomplete="off" autofocus>
+          </label>
+          <label>Sex
+            <select name="sex">
+              <option value="">—</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </label>
+          <label>Age
+            <input type="number" step="any" name="age" placeholder="years">
+          </label>
+          <label>Consent status
+            <select name="consent_status">
+              <option>Pending</option>
+              <option selected>Obtained</option>
+              <option>Declined</option>
+            </select>
+          </label>
+          <label>Screening
+            <select name="screening_status">
+              <option>Screened</option>
+              <option selected>Eligible</option>
+              <option>Ineligible</option>
+            </select>
+          </label>
+          <label>Enrollment
+            <select name="enrollment_status">
+              <option selected>Enrolled</option>
+              <option>Withdrawn</option>
+              <option>Completed</option>
+            </select>
+          </label>
+          <label class="full">Notes
+            <input name="notes" placeholder="Optional — anything unusual?">
+          </label>
+        </div>
+      </div>
+    </div>
+
+    {# ─── INCLUSION CRITERIA (green) ─── #}
+    <div class="qe-section qe-inclusion">
+      <div class="qe-section-head">
+        <span class="qe-ic">{{ icon('check-circle', 16, '#059669', 2) }}</span>
+        <h3>Inclusion criteria</h3>
+        <span class="qe-count">{{ by_kind.inclusion|length }} rule(s)</span>
+      </div>
+      <div class="qe-section-body">
+        {% if by_kind.inclusion %}
+        <div class="qe-crit-list">
+          {% for c in by_kind.inclusion %}
+          <label class="qe-crit">
+            <input type="checkbox" name="crit_inc_{{ c.id }}">
+            <div class="qe-crit-body">
+              <div class="qe-crit-name">{{ c.name }}</div>
+              <div class="qe-crit-rule">
+                {% if c.pname %}{{ c.pname }}{% else %}(free-text){% endif %}
+                {{ c.operator }} {{ c.value1 }}{% if c.value2 %} – {{ c.value2 }}{% endif %}
+              </div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="qe-crit-empty">
+          No inclusion criteria defined for this study.
+          <a href="{{ url_for('criteria_for_study', sid=sid) }}">Add them →</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ─── EXCLUSION CRITERIA (red) ─── #}
+    <div class="qe-section qe-exclusion">
+      <div class="qe-section-head">
+        <span class="qe-ic">{{ icon('x-circle', 16, '#dc2626', 2) }}</span>
+        <h3>Exclusion criteria</h3>
+        <span class="qe-count">{{ by_kind.exclusion|length }} rule(s)</span>
+      </div>
+      <div class="qe-section-body">
+        {% if by_kind.exclusion %}
+        <div class="qe-crit-list">
+          {% for c in by_kind.exclusion %}
+          <label class="qe-crit">
+            <input type="checkbox" name="crit_exc_{{ c.id }}">
+            <div class="qe-crit-body">
+              <div class="qe-crit-name">{{ c.name }}</div>
+              <div class="qe-crit-rule">
+                {% if c.pname %}{{ c.pname }}{% else %}(free-text){% endif %}
+                {{ c.operator }} {{ c.value1 }}{% if c.value2 %} – {{ c.value2 }}{% endif %}
+              </div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="qe-crit-empty">No exclusion criteria defined.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ─── GROUP ASSIGNMENT (violet) ─── #}
+    <div class="qe-section qe-group">
+      <div class="qe-section-head">
+        <span class="qe-ic">{{ icon('target', 16, '#7c3aed', 2) }}</span>
+        <h3>Group assignment</h3>
+        <span class="qe-count">Auto or manual</span>
+      </div>
+      <div class="qe-section-body">
+        <div class="qe-group-grid">
+          <label class="qe-group-opt" data-color="auto">
+            <input type="radio" name="group_type" value="Auto" checked>
+            <span class="qe-g-label">Auto</span>
+            <span class="qe-g-sub">Use criteria rules</span>
+          </label>
+          <label class="qe-group-opt" data-color="Study">
+            <input type="radio" name="group_type" value="Study">
+            <span class="qe-g-label">Study</span>
+            <span class="qe-g-sub">Force Study group</span>
+          </label>
+          <label class="qe-group-opt" data-color="Control">
+            <input type="radio" name="group_type" value="Control">
+            <span class="qe-g-label">Control</span>
+            <span class="qe-g-sub">Force Control group</span>
+          </label>
+          <label class="qe-group-opt" data-color="Excluded">
+            <input type="radio" name="group_type" value="Excluded">
+            <span class="qe-g-label">Excluded</span>
+            <span class="qe-g-sub">Not eligible</span>
+          </label>
+          <label class="qe-group-opt" data-color="Undetermined">
+            <input type="radio" name="group_type" value="Undetermined">
+            <span class="qe-g-label">? TBD</span>
+            <span class="qe-g-sub">Decide later</span>
+          </label>
+        </div>
+
+        <div class="qe-classify-preview" data-cls="Undetermined" id="qe-classify">
+          <span class="qe-cp-badge" id="qe-cls-badge">UNDETERMINED</span>
+          <div class="qe-cp-body">
+            <div class="qe-cp-title">Live classification preview</div>
+            <div class="qe-cp-reason" id="qe-cls-reason">Fill in parameters to see the suggestion</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ─── PARAMETERS (colour-coded by category) ─── #}
+    {% for cat in grouped %}
+    <div class="qe-section" style="border-color:#e2e8f0">
+      <div class="qe-section-head">
+        <span class="qe-ic" style="background:#f1f5f9">
+          {{ icon('sliders-horizontal', 16, '#64748b', 2) }}
+        </span>
+        <h3>{{ cat.category }}</h3>
+        <span class="qe-count">{{ cat.params|length }} field(s)</span>
+      </div>
+      <div class="qe-section-body">
+        <div class="qe-cat cat-{{ cat.color }}">
+          <div class="qe-cat-head">
+            {{ cat.category }}
+            <span class="qe-cat-count">{{ cat.params|length }}</span>
+          </div>
+          <div class="qe-grid">
+            {% for p in cat.params %}
+            <label class="qe-field">
+              <span>{{ p.name }}{% if p.required %} <b style="color:#dc2626">*</b>{% endif %}</span>
+              <small>
+                {{ p.code }}{% if p.unit %} · {{ p.unit }}{% endif %}
+                {% if p.ref_text %} · Ref {{ p.ref_text }}{% endif %}
+              </small>
+              {% if p.data_type == 'Choice' %}
+              <select name="p_{{ p.id }}">
+                <option value="">—</option>
+                {% for c in (p.choices or '').split(',') %}
+                {% if c.strip() %}<option>{{ c.strip() }}</option>{% endif %}
+                {% endfor %}
+              </select>
+              {% elif p.data_type in ('Yes/No','Boolean') %}
+              <select name="p_{{ p.id }}">
+                <option value="">—</option><option>Yes</option><option>No</option>
+              </select>
+              {% elif p.data_type == 'Long text' %}
+              <textarea name="p_{{ p.id }}" rows="2"></textarea>
+              {% elif p.data_type == 'Date' %}
+              <input type="date" name="p_{{ p.id }}">
+              {% elif p.data_type == 'Integer' %}
+              <input type="number" step="1" name="p_{{ p.id }}" class="qe-param">
+              {% elif p.data_type == 'Decimal' %}
+              <input type="number" step="any" name="p_{{ p.id }}" class="qe-param">
+              {% else %}
+              <input type="text" name="p_{{ p.id }}" class="qe-param">
+              {% endif %}
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    {# ─── LIVE CALCULATIONS (emerald) ─── #}
+    <div class="qe-section qe-calculations">
+      <div class="qe-section-head">
+        <span class="qe-ic">{{ icon('sigma', 16, '#059669', 2) }}</span>
+        <h3>Auto-calculated values</h3>
+        <span class="qe-count">{{ formulas|length }} formula(s)</span>
+      </div>
+      <div class="qe-section-body">
+        {% if formulas %}
+        <div class="qe-calc-grid" id="qe-calc-grid">
+          {% for f in formulas %}
+          <div class="qe-calc-tile qe-calc-inactive" data-formula-id="{{ f.id }}">
+            <div class="qe-ct-name">{{ f.name }}</div>
+            <div class="qe-ct-val" data-val="—">—</div>
+          </div>
+          {% endfor %}
+        </div>
+        <p class="tiny muted" style="margin:10px 0 0">
+          Values update live as you type. Grey = waiting for inputs.
+        </p>
+        {% else %}
+        <div class="qe-crit-empty">
+          No formulas installed.
+          <a href="{{ url_for('formula_library_page') }}">Browse formula library →</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ─── PRESCRIPTION IMAGE (indigo — only for Study group) ─── #}
+    <div class="qe-section qe-prescription" id="qe-rx-section">
+      <div class="qe-section-head">
+        <span class="qe-ic">{{ icon('image', 16, '#4f46e5', 2) }}</span>
+        <h3>Prescription / clinical image</h3>
+        <span class="qe-count">Study group only</span>
+      </div>
+      <div class="qe-section-body">
+        <p class="muted tiny" style="margin-top:0">
+          Upload a photo of the prescription or clinical note. PNG, JPG, WEBP, GIF up to 15 MB.
+        </p>
+        <label>Choose file
+          <input type="file" name="prescription" accept="image/*">
+        </label>
+      </div>
+    </div>
+
+    {# ─── STICKY ACTIONS BAR ─── #}
+    <div class="qe-actions">
+      <a class="btn" href="{{ url_for('dashboard') }}">Cancel</a>
+      <button type="submit" class="btn primary" id="qe-submit">
+        {{ icon('check-circle', 16, '#ffffff', 2) }} Save participant
+      </button>
+    </div>
+  </form>
+
+  {# ═══════════════════════════════════════════════════════
+     RECENT ENTRIES
+     ═══════════════════════════════════════════════════════ #}
+  <div class="qe-section" style="border-color:#cbd5e1">
+    <div class="qe-section-head">
+      <span class="qe-ic" style="background:#f1f5f9">{{ icon('list', 16, '#64748b', 2) }}</span>
+      <h3>Recent entries in this study</h3>
+      <span class="qe-count">{{ recent|length }} shown</span>
+    </div>
+    <div class="qe-section-body">
+      {% if recent %}
+      <div class="qe-recent-list">
+        {% for r in recent %}
+        <div class="qe-recent-item">
+          <div class="qe-ri-main">
+            <span class="qe-ri-code">{{ r.participant_code }}</span>
+            <span class="qe-ri-cls" data-cls="{{ r.classification or 'Undetermined' }}">
+              {{ r.classification or 'Undetermined' }}
+            </span>
+            <span class="qe-ri-meta">
+              {{ r.visit_date or '—' }}
+              {% if r.sex %} · {{ r.sex }}{% endif %}
+              {% if r.age %} · {{ r.age }}y{% endif %}
+              {% if r.n_files %} · 📎 {{ r.n_files }}{% endif %}
+            </span>
+          </div>
+          <div class="qe-ri-actions">
+            <a class="btn sm" href="{{ url_for('participant_detail', pid=r.id) }}" title="Open">👁</a>
+            <a class="btn sm" href="{{ url_for('participant_edit', pid=r.id) }}" title="Edit">✏️</a>
+            <a class="btn sm" href="{{ url_for('print_participant', pid=r.id) }}" target="_blank" title="Print">🖨</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="qe-crit-empty">No participants yet in this study.</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   Live preview — classification + formulas
+   ═══════════════════════════════════════════════════════════ */
+const QE = {
+  timer: null,
+  studyId: {{ sid|int }},
+
+  init() {
+    // Live update on any parameter change
+    document.querySelectorAll(".qe-param, .qe-field input, .qe-field select, .qe-field textarea")
+      .forEach(el => {
+        el.addEventListener("input", () => this.scheduleUpdate());
+        el.addEventListener("change", () => this.scheduleUpdate());
+      });
+
+    // Group radio toggle — prescription visibility
+    document.querySelectorAll('input[name="group_type"]').forEach(el => {
+      el.addEventListener("change", () => this.togglePrescription());
+    });
+
+    // Initial run
+    this.scheduleUpdate();
+    this.togglePrescription();
+  },
+
+  scheduleUpdate() {
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.runPreview(), 500);
+  },
+
+  async runPreview() {
+    const fd = new FormData();
+    fd.append("_csrf", "{{ csrf_token() }}");
+    fd.append("study_id", this.studyId);
+
+    // Gather parameter values
+    document.querySelectorAll(".qe-field input, .qe-field select, .qe-field textarea")
+      .forEach(el => {
+        fd.append(el.name, el.value);
+      });
+
+    try {
+      const r = await fetch("/quick-entry/preview", { method: "POST", body: fd });
+      const d = await r.json();
+      this.renderClassification(d);
+      this.renderCalculations(d);
+    } catch (e) {
+      // Silent
+    }
+  },
+
+  renderClassification(d) {
+    const box = document.getElementById("qe-classify");
+    const badge = document.getElementById("qe-cls-badge");
+    const reason = document.getElementById("qe-cls-reason");
+
+    // If user picked a manual group, respect it visually
+    const manual = document.querySelector('input[name="group_type"]:checked')?.value;
+    let cls = d.classification;
+    let txt = d.reason;
+
+    if (manual && manual !== "Auto") {
+      cls = manual;
+      txt = "Manual override — auto preview says: " + d.reason;
+    }
+
+    box.dataset.cls = cls;
+    badge.textContent = cls.toUpperCase();
+    reason.textContent = txt;
+  },
+
+  renderCalculations(d) {
+    const tiles = document.querySelectorAll(".qe-calc-tile");
+    tiles.forEach((tile, i) => {
+      const c = d.calculations[i];
+      if (!c) return;
+      const valEl = tile.querySelector(".qe-ct-val");
+      if (c.ok && c.value !== null) {
+        tile.classList.remove("qe-calc-inactive");
+        valEl.innerHTML = c.value + (c.unit ? '<span class="qe-ct-unit">' + c.unit + '</span>' : "");
+      } else {
+        tile.classList.add("qe-calc-inactive");
+        valEl.textContent = "—";
+      }
+    });
+  },
+
+  togglePrescription() {
+    const manual = document.querySelector('input[name="group_type"]:checked')?.value;
+    const rx = document.getElementById("qe-rx-section");
+    // Show for Study (manual or auto-suggested Study)
+    const cls = document.getElementById("qe-classify").dataset.cls;
+    const show = manual === "Study" || (manual === "Auto" && cls === "Study");
+    rx.style.display = show ? "" : "none";
+  }
+};
+
+document.addEventListener("DOMContentLoaded", () => QE.init());
+
+function qeChangeStudy(sid) {
+  location.href = "/quick-entry?study_id=" + sid;
+}
+</script>
+
+{% endblock %}

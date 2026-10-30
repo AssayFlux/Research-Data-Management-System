@@ -1,0 +1,60 @@
+{% from "_print_macros.html" import print_styles, print_header, print_footer, print_toolbar %}
+{% set cfg = print_cfg('participant') %}
+<!doctype html><html><head><meta charset="utf-8">
+<title>Participant {{ p.participant_code }} · {{ app_name }}</title>
+{{ print_styles(cfg) }}
+</head><body>
+{{ print_toolbar() }}
+<div class="cp-wrap">
+  {{ print_header(cfg, app_name) }}
+
+  <div class="cp-body">
+    <h2>Participant — {{ p.participant_code }}</h2>
+    <div class="grid">
+      <div><b>Study</b>{{ p.study_code }}</div>
+      <div><b>Consent</b>{{ p.consent_status }}</div>
+      <div><b>Group</b>{{ p.group_type }}</div>
+      <div><b>Visit date</b>{{ p.visit_date or '—' }}</div>
+      <div><b>Sex</b>{{ p.sex or '—' }}</div>
+      <div><b>Age</b>{{ p.age or '—' }}</div>
+      <div><b>Screening</b>{{ p.screening_status }}</div>
+      <div><b>Records</b>{{ records_data|length }}</div>
+    </div>
+
+    {% for rd in records_data %}
+    <h2>Record #{{ rd.record.id }}{% if rd.record.visit_date %} — {{ rd.record.visit_date }}{% endif %}</h2>
+    <p style="font-size:10px;color:#64748b;margin:0 0 8px">
+      Entered by {{ rd.record.username or '—' }} · {{ rd.record.created_at }}
+    </p>
+    <table>
+      <thead><tr><th>Parameter</th><th class="num">Value</th><th>Unit</th><th>Reference</th><th>State</th></tr></thead>
+      <tbody>
+        {% for v in rd['values'] %}
+        <tr>
+          <td>{{ v.pname }} <small style="color:#64748b">({{ v.pcode }})</small></td>
+          <td class="num">
+            {% if v.numeric_value is not none %}{{ v.numeric_value }}
+            {% else %}{{ v.value_text or '—' }}{% endif %}
+          </td>
+          <td>{{ v.unit or '—' }}</td>
+          <td>
+            {% if v.ref_text %}{{ v.ref_text }}
+            {% elif v.ref_low is not none or v.ref_high is not none %}
+              {{ v.ref_low if v.ref_low is not none else '' }}–{{ v.ref_high if v.ref_high is not none else '' }}
+            {% else %}—{% endif %}
+          </td>
+          <td>{{ v.value_state }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center;color:#64748b">No values in this record.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#64748b;font-size:10.5px">No records yet.</p>
+    {% endfor %}
+  </div>
+
+  {{ print_footer(cfg) }}
+</div>
+</body></html>

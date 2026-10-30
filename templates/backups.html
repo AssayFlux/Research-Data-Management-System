@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Backups · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>Backups</h1><p>Snapshot the database and download a copy.</p></div>
+  <form method="post" action="{{ url_for('backup_create') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <button class="btn primary">+ Create backup now</button>
+  </form>
+</div>
+
+<div class="card table-wrap">
+  <table>
+    <thead><tr><th>File</th><th>Size</th><th>Created</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for f in rows %}
+      <tr>
+        <td><b>{{ f.name }}</b></td>
+        <td>{{ (f.stat().st_size / 1024)|round(1) }} KB</td>
+        <td><small>{{ f.stat().st_mtime|int }}</small></td>
+        <td>
+          <a href="{{ url_for('backup_download', name=f.name) }}">Download</a> ·
+          <form method="post" action="{{ url_for('backup_delete', name=f.name) }}" style="display:inline"
+                onsubmit="return confirm('Delete {{ f.name }}?')">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="link" style="border:0;background:none;color:var(--danger);cursor:pointer;padding:0;font:inherit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="muted" style="text-align:center;padding:28px">
+        No backups yet. Click "Create backup now" to make one.
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

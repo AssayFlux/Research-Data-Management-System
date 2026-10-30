@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Parameter library · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>Parameter library</h1>
+    <p>{{ total }} world-standard medical parameters — install any into your project.</p>
+  </div>
+  <a class="btn" href="{{ url_for('parameters_list') }}">← My parameters</a>
+</div>
+
+{# ═══════════ SEARCH + FILTER ═══════════ #}
+<form class="card lib-filter" method="get">
+  <div class="lib-filter-grid">
+    <label>Search
+      <input name="q" value="{{ q }}" placeholder="hemoglobin, BMI, troponin, MDA…">
+    </label>
+    <label>Category
+      <select name="cat">
+        <option value="">All categories</option>
+        {% for c in categories %}
+        <option value="{{ c }}" {% if cat==c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <div class="lib-filter-actions">
+      <button class="btn primary">Search</button>
+      {% if q or cat or tag %}<a class="btn" href="{{ url_for('parameter_library_page') }}">Clear</a>{% endif %}
+    </div>
+  </div>
+</form>
+
+{# ═══════════ CATEGORY TABS ═══════════ #}
+<div class="lib-tabs">
+  <a href="{{ url_for('parameter_library_page') }}" class="{% if not cat and not q and not tag %}active{% endif %}">All ({{ total }})</a>
+  {% for c in categories %}
+  <a href="?cat={{ c }}" class="{% if cat==c %}active{% endif %}">{{ c }}</a>
+  {% endfor %}
+</div>
+
+{# ═══════════ BULK INSTALL BAR ═══════════ #}
+<form method="post" action="{{ url_for('parameter_library_install_bulk') }}">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+  <div class="card lib-bulk">
+    <div class="lib-bulk-row">
+      <div class="lib-bulk-input">
+        <label for="bulk-group">Group name <span class="muted">(optional)</span></label>
+        <input id="bulk-group" name="group_name" placeholder="e.g. PCOS Panel, Baseline bloods">
+      </div>
+      <div class="lib-bulk-btns">
+        <button type="button" class="btn" onclick="document.querySelectorAll('.lib-check').forEach(c=>c.checked=true)">
+          Select all
+        </button>
+        <button type="button" class="btn" onclick="document.querySelectorAll('.lib-check').forEach(c=>c.checked=false)">
+          Clear
+        </button>
+        <button class="btn primary">Install selected</button>
+      </div>
+    </div>
+  </div>
+
+  {# ═══════════ CARD GRID ═══════════ #}
+  <div class="lib-grid">
+    {% for p in items %}
+    {% set installed = p.code in installed_codes %}
+    <div class="lib-card {% if installed %}lib-installed{% endif %}">
+
+      {# ── Header: name + code/checkbox ── #}
+      <div class="lib-head">
+        <div class="lib-head-left">
+          <div class="lib-name">{{ p.name }}</div>
+          <div class="lib-meta">{{ p.category }}{% if p.subcategory %} · {{ p.subcategory }}{% endif %}</div>
+        </div>
+        <div class="lib-head-right">
+          {% if installed %}
+          <span class="lib-badge lib-badge-installed">✓ installed</span>
+          {% else %}
+          <span class="lib-code">{{ p.code }}</span>
+          <label class="lib-checkbox" title="Select for bulk install">
+            <input type="checkbox" name="pick" value="{{ p.id }}" class="lib-check">
+          </label>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── Labelled field grid — colour coded ── #}
+      <div class="lib-fields">
+
+        {# Data type #}
+        <div class="lib-field lib-field-type">
+          <span class="lf-label">Type</span>
+          <span class="lf-value">{{ p.data_type }}</span>
+        </div>
+
+        {# Unit — only if present #}
+        {% if p.unit %}
+        <div class="lib-field lib-field-unit">
+          <span class="lf-label">Unit</span>
+          <span class="lf-value">{{ p.unit }}</span>
+        </div>
+        {% endif %}
+
+        {# Reference range #}
+        {% if p.ref_text or p.ref_low is not none or p.ref_high is not none %}
+        <div class="lib-field lib-field-ref">
+          <span class="lf-label">Reference</span>
+          <span class="lf-value">
+            {% if p.ref_text %}{{ p.ref_text }}
+            {% elif p.ref_low is not none and p.ref_high is not none %}
+              {{ p.ref_low }}–{{ p.ref_high }}
+            {% elif p.ref_low is not none %}
+              ≥ {{ p.ref_low }}
+            {% elif p.ref_high is not none %}
+              ≤ {{ p.ref_high }}
+            {% endif %}
+          </span>
+        </div>
+        {% endif %}
+
+      </div>
+
+      {# ── Footer ── #}
+      <div class="lib-foot">
+        <a class="lib-more" href="{{ url_for('parameter_library_detail', pid=p.id) }}">
+          Full details →
+        </a>
+      </div>
+
+    </div>
+    {% else %}
+    <div class="card" style="grid-column:1/-1;text-align:center;padding:40px">
+      <p class="muted" style="margin:0">No parameters match your search.</p>
+    </div>
+    {% endfor %}
+  </div>
+</form>
+
+{% endblock %}

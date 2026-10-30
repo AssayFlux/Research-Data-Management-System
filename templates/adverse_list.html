@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Adverse events · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>Adverse events</h1>
+    <p>{{ n_open }} open event(s).</p>
+  </div>
+  <div class="ae-actions">
+    <a class="btn" href="{{ url_for('print_adverse_report') }}" target="_blank">
+      {{ icon('printer', 14, '#0f766e', 2) }} Print report
+    </a>
+    <a class="btn primary" href="{{ url_for('adverse_new') }}">
+      {{ icon('plus', 14, '#ffffff', 2) }} New event
+    </a>
+  </div>
+</div>
+
+{% if not rows %}
+<div class="card empty-state">
+  <div class="empty-icon">{{ icon('activity', 40, '#cbd5e1', 1.5) }}</div>
+  <h2>No adverse events</h2>
+  <p>Adverse events you record will appear here.</p>
+  <a class="btn primary" href="{{ url_for('adverse_new') }}">+ Record first event</a>
+</div>
+
+{% else %}
+
+{# ── Desktop: table ── #}
+<div class="card table-wrap ae-table-wrap">
+  <table class="ae-table">
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Study</th>
+        <th>Participant</th>
+        <th>Date</th>
+        <th>Term</th>
+        <th>Severity</th>
+        <th>Outcome</th>
+        <th style="text-align:right">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>
+          {% if r.resolved %}<span class="badge success">Resolved</span>
+          {% else %}<span class="badge warning">Open</span>{% endif %}
+        </td>
+        <td>{{ r.study_code or '—' }}</td>
+        <td>{{ r.participant_code or '—' }}</td>
+        <td>{{ r.event_date or '—' }}</td>
+        <td><b>{{ r.term }}</b></td>
+        <td>
+          {% set sev = (r.severity or '')|lower %}
+          {% set sc = 'danger' if sev in ('severe','life-threatening') else ('warning' if sev == 'moderate' else '') %}
+          <span class="badge {{ sc }}">{{ r.severity }}</span>
+        </td>
+        <td>{{ r.outcome }}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <a class="btn sm" href="{{ url_for('adverse_edit', eid=r.id) }}" title="Edit">✏️</a>
+          {% if not r.resolved %}
+          <form method="post" action="{{ url_for('adverse_resolve', eid=r.id) }}" style="display:inline">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="btn sm" title="Resolve">✓</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{{ url_for('adverse_delete', eid=r.id) }}"
+                onsubmit="return confirm('Delete this event?')" style="display:inline">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="btn sm danger" title="Delete">🗑</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# ── Mobile: cards ── #}
+<div class="ae-cards">
+  {% for r in rows %}
+  {% set sev = (r.severity or '')|lower %}
+  {% set sev_color = '#dc2626' if sev in ('severe','life-threatening') else ('#d97706' if sev == 'moderate' else '#059669') %}
+  {% set sev_bg = '#fef2f2' if sev in ('severe','life-threatening') else ('#fffbeb' if sev == 'moderate' else '#ecfdf5') %}
+  <div class="ae-card" style="border-left:4px solid {{ sev_color }}">
+
+    <div class="ae-card-head">
+      <div style="flex:1;min-width:0">
+        <div class="ae-term">{{ r.term }}</div>
+        <div class="ae-meta">{{ r.study_code or '—' }} · {{ r.participant_code or '—' }}</div>
+      </div>
+      {% if r.resolved %}
+      <span class="badge success">Resolved</span>
+      {% else %}
+      <span class="badge warning">Open</span>
+      {% endif %}
+    </div>
+
+    <div class="ae-grid">
+      <div>
+        <span>Date</span>
+        <b>{{ r.event_date or '—' }}</b>
+      </div>
+      <div>
+        <span>Severity</span>
+        <b style="color:{{ sev_color }};background:{{ sev_bg }};padding:2px 8px;border-radius:6px;display:inline-block">{{ r.severity }}</b>
+      </div>
+      <div>
+        <span>Outcome</span>
+        <b>{{ r.outcome }}</b>
+      </div>
+    </div>
+
+    <div class="ae-card-actions">
+      <a class="ae-btn" href="{{ url_for('adverse_edit', eid=r.id) }}">✏️ Edit</a>
+      {% if not r.resolved %}
+      <form method="post" action="{{ url_for('adverse_resolve', eid=r.id) }}" style="display:inline">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="ae-btn" type="submit">✓ Resolve</button>
+      </form>
+      {% endif %}
+      <form method="post" action="{{ url_for('adverse_delete', eid=r.id) }}"
+            onsubmit="return confirm('Delete this event?')" style="display:inline">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="ae-btn ae-btn-danger" type="submit">🗑 Delete</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endif %}
+
+{% endblock %}

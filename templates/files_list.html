@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Files · {{ p.participant_code }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>Files — {{ p.participant_code }}</h1>
+    <p>{{ p.study_code }} · {{ rows|length }} file(s)</p>
+  </div>
+  <a class="btn" href="{{ url_for('participant_detail', pid=p.id) }}">← Participant</a>
+</div>
+
+<div class="card">
+  <h2>Upload</h2>
+  <p class="muted">Images, PDFs, and documents up to 25 MB.</p>
+  <form method="post" action="{{ url_for('files_upload', pid=p.id) }}" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <label>Choose file
+      <input type="file" name="file" required
+             accept=".png,.jpg,.jpeg,.gif,.webp,.svg,.pdf,.txt,.csv,.doc,.docx,.xls,.xlsx">
+    </label>
+    <div class="form-actions"><button class="btn primary">Upload</button></div>
+  </form>
+</div>
+
+<div class="card table-wrap" style="margin-top:12px">
+  <table>
+    <thead><tr><th>Preview</th><th>Name</th><th>Type</th>
+               <th class="num">Size</th><th>Uploaded</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for f in rows %}
+      <tr>
+        <td style="width:90px">
+          {% if f.mime and f.mime.startswith('image/') %}
+            <img src="{{ url_for('files_download', fid=f.id) }}" alt=""
+                 style="max-width:80px;max-height:60px;border-radius:6px;border:1px solid #e2e8f0">
+          {% else %}<span style="font-size:22px">📄</span>{% endif %}
+        </td>
+        <td><b>{{ f.original_name or f.filename }}</b></td>
+        <td><small class="muted">{{ f.mime or '—' }}</small></td>
+        <td class="num">{{ ((f.size or 0) / 1024)|round(1) }} KB</td>
+        <td><small>{{ f.uploaded_at }}</small></td>
+        <td>
+          <a href="{{ url_for('files_download', fid=f.id) }}" target="_blank">Open</a> ·
+          <a href="{{ url_for('files_force_download', fid=f.id) }}">Download</a> ·
+          <form method="post" action="{{ url_for('files_delete', fid=f.id) }}"
+                onsubmit="return confirm('Delete this file?')" style="display:inline">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="link" style="border:0;background:none;color:var(--danger);cursor:pointer;padding:0;font:inherit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="muted" style="text-align:center;padding:28px">
+        No files uploaded yet.
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

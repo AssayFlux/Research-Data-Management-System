@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Statistics · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>Statistics</h1><p>Run common statistical procedures on your study data.</p></div>
+</div>
+
+<div class="card">
+  <div class="form-grid">
+    <label>Study (optional)
+      <select id="study_id">
+        <option value="">All studies</option>
+        {% for s in studies %}<option value="{{ s.id }}">{{ s.study_code }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Parameter
+      <select id="param_id">
+        {% for p in params %}
+        <option value="{{ p.id }}">{{ p.category }} · {{ p.name }} ({{ p.code }}){% if p.unit %} — {{ p.unit }}{% endif %}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </div>
+</div>
+
+<div class="grid3" style="margin-top:12px">
+  <div class="card">
+    <h3 style="margin-top:0">Descriptive</h3>
+    <p class="tiny">N, mean, SD, SE, median, IQR, 95% CI</p>
+    <button class="btn primary" onclick="runDescribe()">Run</button>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Compare groups</h3>
+    <p class="tiny">Auto-selects Welch t-test or Mann-Whitney</p>
+    <button class="btn primary" onclick="runCompare()">Run</button>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Correlation</h3>
+    <p class="tiny">Between two parameters</p>
+    <label>Second parameter
+      <select id="param_id2">
+        <option value="">—</option>
+        {% for p in params %}<option value="{{ p.id }}">{{ p.name }} ({{ p.code }})</option>{% endfor %}
+      </select>
+    </label>
+    <label>Method
+      <select id="corr_method">
+        <option value="pearson">Pearson</option>
+        <option value="spearman">Spearman</option>
+        <option value="kendall">Kendall</option>
+      </select>
+    </label>
+    <button class="btn primary" onclick="runCorrelate()">Run</button>
+  </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+  <h2 style="margin-top:0">Result</h2>
+  <div id="result" class="stat-result">
+    <p class="muted" style="text-align:center;padding:30px 0">
+      Pick a parameter and click Run to see results.
+    </p>
+  </div>
+</div>
+
+<script>
+const CSRF = "{{ csrf_token() }}";
+const resultBox = document.getElementById("result");
+
+async function call(url, data) {
+  const body = new FormData();
+  body.append("_csrf", CSRF);
+  for (const k in data) body.append(k, data[k] ?? "");
+  const r = await fetch(url, { method: "POST", body });
+  return await r.json();
+}
+
+function fmt(v, dec) {
+  if (v === null || v === undefined) return "—";
+  if (typeof v === "number") {
+    if (Number.isInteger(v)) return v.toLocaleString();
+    return v.toFixed(dec ?? 4);
+  }
+  return v;
+}
+
+function setLoading() {
+  resultBox.className = "stat-result loading";
+  resultBox.innerHTML = "Computing…";
+}
+
+function setError(msg) {
+  resultBox.className = "stat-result";
+  resultBox.innerHTML = `<div class="alert danger">${msg}</div>`;
+}
+
+/* ─────────────── DESCRIPTIVE ─────────────── */
+async function runDescribe() {
+  const p = document.getElementById("param_id").value;
+  const s = document.getElementById("study_id").value;
+  if (!p) return setError("Select a parameter first.");
+  setLoading();
+  const d = await call("/statistics/describe", { parameter_id: p, study_id: s });
+  if (d.error) return setError(d.error);
+  if (!d.n) return setError("No values found for this parameter.");
+
+  const html = `
+    <div class="stat-hero">
+      <div class="stat-hero-label">Mean ± SD</div>
+      <div class="stat-hero-value">${fmt(d.mean, 2)} ± ${fmt(d.sd, 2)}</div>
+      <div class="stat-hero-sub">N = ${d.n} · ${d.missing} missing · Total rows: ${d.total_rows}</div>
+    </div>
+
+    <div class="stat-section">
+      <div class="stat-section-title">Central tendency</div>
+      <table class="stat-table">
+        <tr><td>Mean</td><td>${fmt(d.mean, 3)}</td></tr>
+        <tr><td>Median</td><td>${fmt(d.median, 3)}</td></tr>
+      </table>
+    </div>
+
+    <div class="stat-section">
+      <div class="stat-section-title">Spread</div>
+      <div class="stat-grid">
+        <div class="stat-tile"><div class="stat-tile-label">SD</div><div class="stat-tile-value">${fmt(d.sd, 3)}</div></div>
+        <div class="stat-tile"><div class="stat-tile-label">SE</div><div class="stat-tile-value">${fmt(d.se, 3)}</div></div>
+        <div class="stat-tile"><div class="stat-tile-label">IQR</div><div class="stat-tile-value">${fmt(d.iqr, 3)}</div></div>
+        <div class="stat-tile"><div class="stat-tile-label">Range</div><div class="stat-tile-value">${fmt(d.range, 3)}</div></div>
+      </div>
+    </div>
+
+    <div class="stat-section">
+      <div class="stat-section-title">Quartiles & extremes</div>
+      <table class="stat-table">
+        <tr><td>Minimum</td><td>${fmt(d.min, 3)}</td></tr>
+        <tr><td>Q1 (25%)</td><td>${fmt(d.q1, 3)}</td></tr>
+        <tr><td>Median (Q2)</td><td>${fmt(d.median, 3)}</td></tr>
+        <tr><td>Q3 (75%)</td><td>${fmt(d.q3, 3)}</td></tr>
+        <tr><td>Maximum</td><td>${fmt(d.max, 3)}</td></tr>
+      </table>
+    </div>
+
+    <div class="stat-section">
+      <div class="stat-section-title">95% Confidence interval</div>
+      <table class="stat-table">
+        <tr><td>Lower bound</td><td>${fmt(d.ci95_low, 3)}</td></tr>
+        <tr><td>Upper bound</td><td>${fmt(d.ci95_high, 3)}</td></tr>
+      </table>
+    </div>
+
+    <p class="stat-note">
+      ${d.n} observations. 95% CI assumes normal distribution.
+    </p>
+  `;
+  resultBox.className = "stat-result";
+  resultBox.innerHTML = html;
+}
+
+/* ─────────────── COMPARE GROUPS ─────────────── */
+async function runCompare() {
+  const p = document.getElementById("param_id").value;
+  const s = document.getElementById("study_id").value;
+  if (!p) return setError("Select a parameter first.");
+  setLoading();
+  const d = await call("/statistics/compare", { parameter_id: p, study_id: s });
+  if (d.error) return setError(d.error);
+  if (!d.test) return setError("Could not compare groups.");
+
+  const pval = d.p;
+  const sig = pval !== null && pval < 0.05;
+  const sigClass = sig ? "sig" : "ns";
+  const sigText = sig ? "Significant (p < 0.05)" : "Not significant";
+
+  const html = `
+    <div class="stat-hero" style="background:linear-gradient(120deg,${sig ? '#ecfdf5,#ffffff' : '#f8fafc,#ffffff'});border-color:${sig ? '#a7f3d0' : '#e2e8f0'}">
+      <div class="stat-hero-label" style="color:${sig ? '#059669' : '#64748b'}">${d.test}</div>
+      <div class="stat-hero-value" style="color:${sig ? '#0f766e' : '#475569'}">p = ${fmt(pval, 4)}</div>
+      <div class="stat-hero-sub">${sigText}</div>
+    </div>
+
+    <div class="stat-section">
+      <div class="stat-section-title">Groups compared</div>
+      <table class="stat-table">
+        <tr><td>Group A (${d.group_a or '—'})</td><td>n = ${d.n_a}, mean = ${fmt(d.mean_a, 2)}</td></tr>
+        <tr><td>Group B (${d.group_b or '—'})</td><td>n = ${d.n_b}, mean = ${fmt(d.mean_b, 2)}</td></tr>
+        <tr><td>Mean difference</td><td>${fmt(d.mean_diff, 3)}</td></tr>
+      </table>
+    </div>
+
+    <div class="stat-section">
+      <div class="stat-section-title">Test statistics</div>
+      <table class="stat-table">
+        <tr><td>Statistic</td><td>${fmt(d.statistic, 4)}</td></tr>
+        <tr><td>p-value</td><td>${fmt(d.p, 4)}</td></tr>
+        ${d.cohens_d !== undefined ? `<tr><td>Cohen's d</td><td>${fmt(d.cohens_d, 3)} (${d.effect_size or '—'})</td></tr>` : ''}
+      </table>
+    </div>
+
+    ${d.selection_reason ? `<p class="stat-note">${d.selection_reason}</p>` : ''}
+  `;
+  resultBox.className = "stat-result";
+  resultBox.innerHTML = html;
+}
+
+/* ─────────────── CORRELATION ─────────────── */
+async function runCorrelate() {
+  const x = document.getElementById("param_id").value;
+  const y = document.getElementById("param_id2").value;
+  const m = document.getElementById("corr_method").value;
+  const s = document.getElementById("study_id").value;
+  if (!y) return setError("Pick a second parameter for correlation.");
+  setLoading();
+  const d = await call("/statistics/correlate", { x_id: x, y_id: y, method: m, study_id: s });
+  if (d.error) return setError(d.error);
+
+  const r = d.coefficient;
+  const absR = Math.abs(r);
+  let strength = "negligible";
+  if (absR >= 0.5) strength = "strong";
+  else if (absR >= 0.3) strength = "moderate";
+  else if (absR >= 0.1) strength = "weak";
+
+  const direction = r > 0 ? "positive" : r < 0 ? "negative" : "no";
+
+  const sig = d.p !== null && d.p < 0.05;
+
+  const html = `
+    <div class="stat-hero">
+      <div class="stat-hero-label">${d.method} correlation</div>
+      <div class="stat-hero-value">r = ${fmt(r, 3)}</div>
+      <div class="stat-hero-sub">${strength} ${direction} correlation · n = ${d.n}</div>
+    </div>
+
+    <div class="stat-section">
+      <div class="stat-section-title">Interpretation</div>
+      <table class="stat-table">
+        <tr><td>Direction</td><td>${direction}</td></tr>
+        <tr><td>Strength</td><td>${strength}</td></tr>
+        <tr><td>R² (variance explained)</td><td>${fmt(r*r, 3)} (${(r*r*100).toFixed(1)}%)</td></tr>
+      </table>
+    </div>
+
+    <div class="stat-section">
+      <div class="stat-section-title">Significance</div>
+      <table class="stat-table">
+        <tr><td>p-value</td><td>${fmt(d.p, 4)}</td></tr>
+        <tr><td>Verdict</td><td><span class="stat-signif ${sig ? 'sig' : 'ns'}">${sig ? 'Significant' : 'Not significant'}</span></td></tr>
+      </table>
+    </div>
+  `;
+  resultBox.className = "stat-result";
+  resultBox.innerHTML = html;
+}
+</script>
+
+{% endblock %}

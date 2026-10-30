@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Learn · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="learn-page">
+
+  <div class="learn-hero">
+    <div class="learn-hero-icon">{{ icon('book-open', 34, '#ffffff', 1.75) }}</div>
+    <div>
+      <h1>Learn</h1>
+      <p>{{ total }} articles — everything from your first study to advanced statistics.</p>
+    </div>
+  </div>
+
+  <div class="learn-cats">
+    {% for cat in grouped %}
+    <div class="learn-cat">
+      <div class="learn-cat-head">
+        <span class="learn-cat-icon">{{ cat.icon }}</span>
+        <h2>{{ cat.label }}</h2>
+        <span class="learn-cat-count">{{ cat.articles|length }}</span>
+      </div>
+      <div class="learn-cards">
+        {% for a in cat.articles %}
+        <a class="learn-card" href="{{ url_for('learn_article', article_id=a.id) }}">
+          <div class="learn-card-title">{{ a.title }}</div>
+          <div class="learn-card-arrow">{{ icon('chevron-right', 14, '#94a3b8', 2) }}</div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+{% endblock %}

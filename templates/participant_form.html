@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit participant' if row else 'New participant' }} · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>{{ 'Edit participant' if row else 'New participant' }}</h1>
+  <p>Identity, study assignment and enrollment metadata.</p></div>
+</div>
+
+<form class="card form-grid" method="post">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+  <label>Study
+    <select name="study_id" required>
+      {% for s in studies %}
+      <option value="{{ s.id }}" {% if row and row.study_id == s.id %}selected{% endif %}>
+        {{ s.study_code }} — {{ s.title }}
+      </option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Participant ID
+    <input name="participant_code" value="{{ row.participant_code if row else '' }}" required>
+  </label>
+
+  <label>Consent status
+    <select name="consent_status">
+      {% for c in ['Pending','Obtained','Declined'] %}
+      <option {% if row and row.consent_status == c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Visit date
+    <input type="date" name="visit_date" value="{{ row.visit_date if row else '' }}">
+  </label>
+
+  <label>Sex
+    <select name="sex">
+      <option value="">—</option>
+      {% for s in ['Male','Female','Other'] %}
+      <option {% if row and row.sex == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Age
+    <input type="number" step="any" name="age" value="{{ row.age if row else '' }}">
+  </label>
+
+  <label>Group
+    <select name="group_type">
+      {% for g in ['Case','Control','Treatment','Placebo','Unclassified'] %}
+      <option {% if row and row.group_type == g %}selected{% endif %}>{{ g }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Screening status
+    <select name="screening_status">
+      {% for s in ['Screened','Eligible','Ineligible'] %}
+      <option {% if row and row.screening_status == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Enrollment status
+    <select name="enrollment_status">
+      {% for s in ['Enrolled','Withdrawn','Completed'] %}
+      <option {% if row and row.enrollment_status == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label class="full">Notes
+    <textarea name="notes">{{ row.notes if row else '' }}</textarea>
+  </label>
+
+  <div class="form-actions full">
+    <a class="btn" href="{{ url_for('participants_list') }}">Cancel</a>
+    <button class="btn primary">Save participant</button>
+  </div>
+</form>
+
+{% endblock %}

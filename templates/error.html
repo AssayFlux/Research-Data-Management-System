@@ -1,0 +1,7 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ code }} · {{ app_name }}</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/pro.css') }}"></head>
+<body><div class="error-box"><h1>{{ code }}</h1><p>{{ message }}</p>
+<a class="btn primary" href="{{ url_for('dashboard') }}">Back to dashboard</a>
+</div></body></html>

@@ -1,0 +1,53 @@
+{% extends "base.html" %}{% block title %}Specimens · {{ p.participant_code }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Biospecimens — {{ p.participant_code }}</h1><p>{{ p.study_code }} · {{ rows|length }} sample(s)</p></div>
+  <a class="btn" href="{{ url_for('participant_detail', pid=p.id) }}">← Participant</a>
+</div>
+
+<div class="card">
+  <h2>Add specimen</h2>
+  <form method="post" action="{{ url_for('specimen_new', pid=p.id) }}" class="form-grid">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <label>Sample ID<input name="sample_id" required></label>
+    <label>Type<select name="sample_type">
+      <option>Serum</option><option>Plasma</option><option>Whole blood</option>
+      <option>Urine</option><option>Saliva</option><option>Tissue</option>
+      <option>DNA</option><option>RNA</option><option>Other</option>
+    </select></label>
+    <label>Collection date<input type="date" name="collection_date"></label>
+    <label>Storage location<input name="storage_location" placeholder="-80°C / Box 3 / A1"></label>
+    <label>Freeze-thaw count<input type="number" name="freeze_thaw" value="0" min="0"></label>
+    <label>Volume<input name="volume" placeholder="e.g. 1 mL"></label>
+    <label class="full">Notes<textarea name="notes" rows="2"></textarea></label>
+    <div class="form-actions full"><button class="btn primary">+ Add specimen</button></div>
+  </form>
+</div>
+
+<div class="card table-wrap" style="margin-top:12px">
+  <table>
+    <thead><tr><th>Sample ID</th><th>Type</th><th>Collected</th>
+      <th>Storage</th><th>Freeze-thaw</th><th>Volume</th><th>Notes</th><th></th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td><b>{{ r.sample_id }}</b></td>
+        <td>{{ r.sample_type }}</td>
+        <td>{{ r.collection_date or '—' }}</td>
+        <td>{{ r.storage_location or '—' }}</td>
+        <td>{{ r.freeze_thaw or 0 }}</td>
+        <td>{{ r.volume or '—' }}</td>
+        <td>{{ r.notes or '—' }}</td>
+        <td>
+          <form method="post" action="{{ url_for('specimen_delete', sid=r.id) }}"
+                onsubmit="return confirm('Delete specimen?')">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="btn sm danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}<tr><td colspan="8" class="muted" style="text-align:center;padding:24px">No specimens yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

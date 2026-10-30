@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% from "_avatar.html" import user_avatar %}
+{% block title %}My avatar · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>My avatar</h1>
+    <p>Choose from initials, emoji, 27 generative styles, GIFs, or upload your own.</p>
+  </div>
+</div>
+
+<div class="grid2">
+  <div class="card" style="text-align:center">
+    <div style="margin:20px 0">{{ user_avatar(user, 120, ring=True) }}</div>
+    <p class="muted">{{ user.username }} · {{ user.role }}</p>
+    <form method="post" action="{{ url_for('avatar_reset') }}"
+          onsubmit="return confirm('Reset to initials?')" style="margin-top:14px">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="btn sm danger">Reset to initials</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="avatar-tabs">
+      <a href="?tab=initials" class="{% if tab=='initials' %}active{% endif %}">Initials</a>
+      <a href="?tab=emoji" class="{% if tab=='emoji' %}active{% endif %}">Emoji</a>
+      <a href="?tab=dicebear" class="{% if tab=='dicebear' %}active{% endif %}">Generated</a>
+      <a href="?tab=upload" class="{% if tab=='upload' %}active{% endif %}">Upload</a>
+      <a href="?tab=gif" class="{% if tab=='gif' %}active{% endif %}">GIF</a>
+    </div>
+
+    {# ── Initials ── #}
+    {% if tab == 'initials' %}
+    <form method="post" action="{{ url_for('avatar_save') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="kind" value="initials">
+      <p>Your initials are shown on a solid teal disc — clean and professional.</p>
+      <button class="btn primary">Use initials</button>
+    </form>
+
+    {# ── Emoji ── #}
+    {% elif tab == 'emoji' %}
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input id="emoji-search" placeholder="Search 750+ emoji…"
+             style="flex:1;border:1px solid #cfd6df;border-radius:10px;padding:9px 11px">
+    </div>
+    <div id="emoji-picker" style="max-height:400px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:8px">
+      {% for cat, items in emoji_catalog.items() %}
+      <div style="margin-bottom:10px">
+        <div style="font-size:10px;font-weight:800;letter-spacing:.06em;
+                    text-transform:uppercase;color:var(--muted);padding:4px 2px">{{ cat }}</div>
+        <div class="emoji-grid">
+          {% for e in items %}
+          <button type="button" class="emoji-btn" data-emoji="{{ e }}">{{ e }}</button>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <form method="post" action="{{ url_for('avatar_save') }}" id="emoji-form" style="margin-top:10px">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="kind" value="emoji">
+      <input type="hidden" name="value" id="emoji-value">
+      <div style="display:flex;gap:8px;align-items:center">
+        <div id="emoji-preview" style="font-size:32px;line-height:1;width:44px;height:44px;
+             display:grid;place-items:center;border:1px dashed #cbd5e1;border-radius:8px">—</div>
+        <button class="btn primary">Use this emoji</button>
+      </div>
+    </form>
+
+    {# ── DiceBear ── #}
+    {% elif tab == 'dicebear' %}
+    <p class="muted">Pick a style — we generate a fresh avatar every time.</p>
+    <form method="post" action="{{ url_for('avatar_save') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="kind" value="dicebear">
+      <label>Style
+        <select name="style" id="db-style">
+          {% for s in db_styles %}
+          <option value="{{ s }}">{{ db_labels.get(s, s) }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Seed (leave blank for random)
+        <input name="value" id="db-seed" placeholder="optional — any text or number">
+      </label>
+      <div style="text-align:center;margin:12px 0">
+        <img id="db-preview"
+             src="https://api.dicebear.com/7.x/adventurer/svg?seed=preview"
+             style="width:120px;height:120px;border-radius:50%;border:1px solid #e2e8f0">
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button type="button" class="btn" onclick="randomize()">🎲 Random seed</button>
+        <button class="btn primary">Use this avatar</button>
+      </div>
+    </form>
+
+    {# ── Upload ── #}
+    {% elif tab == 'upload' %}
+    <form method="post" action="{{ url_for('avatar_save') }}" enctype="multipart/form-data">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="kind" value="upload">
+      <p class="muted">PNG, JPG, GIF, WEBP or SVG. Square images look best.</p>
+      <label>Choose image
+        <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.svg" required>
+      </label>
+      <div class="form-actions"><button class="btn primary">Upload avatar</button></div>
+    </form>
+
+    {# ── GIF ── #}
+    {% elif tab == 'gif' %}
+    <form method="post" action="{{ url_for('avatar_save') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="kind" value="gif">
+      <p class="muted">Paste a direct GIF URL (must end in .gif or be a Tenor/Giphy direct link).</p>
+      <label>GIF URL
+        <input name="value" placeholder="https://media.giphy.com/media/…/giphy.gif" required>
+      </label>
+      <div class="form-actions"><button class="btn primary">Use this GIF</button></div>
+    </form>
+
+    <h3 style="margin-top:18px">Find a science GIF</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      {% for label, q in gif_topics %}
+      <a class="btn sm" target="_blank"
+         href="https://giphy.com/search/{{ q|urlencode }}">{{ label }}</a>
+      {% endfor %}
+    </div>
+    <p class="tiny" style="margin-top:8px">Open Giphy, right-click a GIF, copy image URL, paste above.</p>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+// Emoji picker
+document.querySelectorAll('.emoji-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    const e = b.dataset.emoji;
+    document.getElementById('emoji-value').value = e;
+    document.getElementById('emoji-preview').textContent = e;
+    document.querySelectorAll('.emoji-btn').forEach(x => x.classList.remove('picked'));
+    b.classList.add('picked');
+  });
+});
+const emojiSearch = document.getElementById('emoji-search');
+if (emojiSearch) {
+  emojiSearch.addEventListener('input', async () => {
+    const q = emojiSearch.value.trim();
+    const url = '{{ url_for("emoji_search") }}';
+    const body = new FormData();
+    body.append('_csrf', '{{ csrf_token() }}');
+    body.append('q', q);
+    const r = await fetch(url, { method: 'POST', body });
+    const d = await r.json();
+    if (!q) {
+      location.reload(); return;
+    }
+    const picker = document.getElementById('emoji-picker');
+    picker.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'emoji-grid';
+    d.emojis.forEach(e => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'emoji-btn'; b.textContent = e;
+      b.onclick = () => {
+        document.getElementById('emoji-value').value = e;
+        document.getElementById('emoji-preview').textContent = e;
+      };
+      wrap.appendChild(b);
+    });
+    picker.appendChild(wrap);
+  });
+}
+
+// DiceBear preview
+const dbStyle = document.getElementById('db-style');
+const dbSeed  = document.getElementById('db-seed');
+const dbPreview = document.getElementById('db-preview');
+function preview() {
+  const s = dbStyle.value || 'adventurer';
+  const seed = (dbSeed.value || 'preview').trim();
+  dbPreview.src = `https://api.dicebear.com/7.x/${s}/svg?seed=${encodeURIComponent(seed)}`;
+}
+if (dbStyle) { dbStyle.addEventListener('change', preview); dbSeed.addEventListener('input', preview); }
+async function randomize() {
+  const r = await fetch('{{ url_for("avatar_random_seed") }}');
+  const d = await r.json();
+  dbSeed.value = d.seed;
+  preview();
+}
+</script>
+
+<style>
+.avatar-tabs{display:flex;gap:16px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.avatar-tabs a{padding:8px 2px;font-weight:600;font-size:13px;color:var(--muted);
+  border-bottom:2px solid transparent;text-decoration:none}
+.avatar-tabs a.active{color:var(--primary);border-bottom-color:var(--primary)}
+.emoji-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:4px}
+.emoji-btn{background:#f8fafc;border:1px solid transparent;border-radius:8px;
+  font-size:20px;padding:6px 0;cursor:pointer;transition:.12s}
+.emoji-btn:hover{background:#ecfdf5;border-color:#a7f3d0}
+.emoji-btn.picked{background:#059669;color:#fff}
+</style>
+
+{% endblock %}

@@ -1,0 +1,10 @@
+(function(){
+ const s=document.getElementById("sidebar"),o=document.getElementById("overlay"),
+ m=document.getElementById("menu");
+ const op=()=>{s&&s.classList.add("open");o&&o.classList.add("show")};
+ const cl=()=>{s&&s.classList.remove("open");o&&o.classList.remove("show")};
+ if(m)m.addEventListener("click",op);
+ if(o)o.addEventListener("click",cl);
+ document.querySelectorAll(".sidebar a").forEach(a=>a.addEventListener("click",cl));
+ document.addEventListener("keydown",e=>{if(e.key==="Escape")cl()});
+})();

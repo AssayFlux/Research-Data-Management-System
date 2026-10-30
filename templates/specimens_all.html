@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Biospecimens · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>Biospecimen inventory</h1><p>All samples across studies.</p></div>
+  <form method="get">
+    <select name="study_id" onchange="this.form.submit()"
+            style="border:1px solid var(--border);border-radius:10px;padding:8px 12px;background:#fff;font-size:13px">
+      <option value="">All studies</option>
+      {% for s in studies %}
+      <option value="{{ s.id }}" {% if selected==s.id %}selected{% endif %}>{{ s.study_code }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+
+{% if not rows %}
+<div class="card empty-state">
+  <div class="empty-icon">{{ icon('test-tubes', 40, '#cbd5e1', 1.5) }}</div>
+  <h2>No specimens recorded</h2>
+  <p>Add biospecimens from any participant's page.</p>
+  <a class="btn primary" href="{{ url_for('participants_list') }}">Go to participants</a>
+</div>
+{% else %}
+
+{# Desktop table #}
+<div class="card table-wrap mobile-hide">
+  <table>
+    <thead>
+      <tr>
+        <th>Sample ID</th>
+        <th>Participant</th>
+        <th>Study</th>
+        <th>Type</th>
+        <th>Collected</th>
+        <th>Storage</th>
+        <th>Freeze-thaw</th>
+        <th>Volume</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td><b>{{ r.sample_id }}</b></td>
+        <td><a href="{{ url_for('participant_detail', pid=r.pid) }}">{{ r.participant_code }}</a></td>
+        <td>{{ r.study_code }}</td>
+        <td>{{ r.sample_type }}</td>
+        <td>{{ r.collection_date or '—' }}</td>
+        <td>{{ r.storage_location or '—' }}</td>
+        <td>{{ r.freeze_thaw or 0 }}</td>
+        <td>{{ r.volume or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# Mobile cards #}
+<div class="mobile-only">
+  {% for r in rows %}
+  <div class="m-card">
+    <div class="m-card-head">
+      <div style="flex:1;min-width:0">
+        <div class="m-card-code">{{ r.sample_id }}</div>
+        <div class="m-card-title">{{ r.sample_type or '—' }}</div>
+      </div>
+      {% if r.freeze_thaw and r.freeze_thaw > 2 %}
+      <span class="badge warning">{{ r.freeze_thaw }}× thaw</span>
+      {% else %}
+      <span class="badge">{{ r.freeze_thaw or 0 }}× thaw</span>
+      {% endif %}
+    </div>
+    <div class="m-card-grid">
+      <div><span>Participant</span><b>{{ r.participant_code }}</b></div>
+      <div><span>Study</span><b>{{ r.study_code }}</b></div>
+      <div><span>Collected</span><b>{{ r.collection_date or '—' }}</b></div>
+      <div><span>Volume</span><b>{{ r.volume or '—' }}</b></div>
+    </div>
+    {% if r.storage_location %}
+    <div style="background:#f1f5f9;padding:8px 10px;border-radius:8px;
+                font-family:var(--mono);font-size:12px;color:#475569;margin-bottom:8px">
+      📍 {{ r.storage_location }}
+    </div>
+    {% endif %}
+    <div class="m-card-actions">
+      <a class="m-btn" href="{{ url_for('participant_detail', pid=r.pid) }}">👁 View participant</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}QR · {{ p.participant_code }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>QR code — {{ p.participant_code }}</h1>
+    <p>{{ p.study_code }}</p>
+  </div>
+  <a class="btn" href="{{ url_for('participant_detail', pid=p.id) }}">← Participant</a>
+</div>
+
+<div class="grid2">
+  <div class="card" style="text-align:center">
+    <img src="{{ url_for('qr_png', pid=p.id, size=6) }}" alt="QR"
+         style="max-width:320px;width:100%;border-radius:12px;border:1px solid var(--border);padding:8px;background:#fff">
+    <p class="muted" style="margin-top:12px">
+      {{ data_size }} characters · 
+      {% if fits %}
+        <span style="color:#059669;font-weight:700">✓ fits in QR</span>
+      {% else %}
+        <span style="color:#dc2626;font-weight:700">✗ too large</span>
+      {% endif %}
+    </p>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap">
+      <a class="btn" href="{{ url_for('qr_png', pid=p.id, size=8) }}" download>⬇ PNG</a>
+      <a class="btn" href="{{ url_for('print_quick_entry', pid=p.id) }}" target="_blank">🖨 Print sheet</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>What's encoded</h2>
+    <p class="muted">The QR contains a compressed JSON payload with:</p>
+    <ul style="padding-left:18px;line-height:1.9;font-size:13px;color:var(--body)">
+      <li>✓ Study metadata (code, title, PI, institution)</li>
+      <li>✓ Participant info (age, sex, consent, classification)</li>
+      <li>✓ All {{ p.participant_code }} parameter values</li>
+      <li>✓ Criteria evaluation rules</li>
+    </ul>
+    <p class="tiny" style="margin-top:14px">
+      Format: <code>RZ:&lt;compressed&gt;</code>
+      <br>To decode, use <code>python decode_qr.py "RZ:..."</code>
+      or open <code>/print/quick-entry/data/{{ p.id }}</code>
+    </p>
+    <div class="alert info" style="margin-top:14px">
+      No internet required. Works even if the server is offline.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

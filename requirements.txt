@@ -1,0 +1,28 @@
+# PAGEPATTERN — Python dependencies
+# Tested on Termux (Python 3.12–3.14) and PythonAnywhere
+
+Flask>=3.0.0
+Werkzeug>=3.0.0
+Jinja2>=3.1.0
+MarkupSafe>=2.1.0
+itsdangerous>=2.1.0
+click>=8.1.0
+blinker>=1.6.0
+
+# Data analysis
+scipy>=1.10.0
+numpy>=1.24.0
+
+# Reports & files
+matplotlib>=3.7.0
+openpyxl>=3.1.0
+reportlab>=4.0.0
+Pillow>=10.0.0
+
+# Features
+markdown>=3.4.0
+qrcode[pil]>=7.4.0
+
+# Authentication (optional — install if you want fingerprint login)
+# webauthn>=1.11.0
+# cryptography>=41.0.0

@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Research DMS">
+<meta name="application-name" content="Research DMS">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+
+<meta name="theme-color" content="{{ app_settings.get('ui_primary', '#059669') }}">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>{% block title %}{{ app_name }}{% endblock %}</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pro.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
+{% if app_settings.get('favicon_url') %}
+<link rel="icon" href="{{ app_settings.get('favicon_url') }}">
+{% endif %}
+
+{% set _fc = app_settings.get('ui_font_class','') %}
+{% if _fc and not _fc.startswith('f-sys') %}
+{% set _fam = _fc[2:].replace('-', '+') %}
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family={{ _fam }}:wght@300;400;500;600;700;800&display=swap">
+{% endif %}
+
+<style id="_compact">
+{% if app_settings.get('ui_compact', '0') == '1' %}
+.content { padding: 10px 12px 60px 12px !important; }
+.card { padding: 10px !important; }
+.kpi-card, .qa-item, .sys-item { padding: 6px 8px !important; }
+table th, table td { padding: 5px 8px !important; font-size: 12.5px !important; }
+.sidebar nav a { height: 28px !important; font-size: 12.5px !important; }
+h1 { font-size: 20px !important; }
+h2 { font-size: 15px !important; }
+.pagehead { margin-bottom: 10px !important; }
+{% endif %}
+</style>
+</head>
+<body class="{{ app_settings.get('ui_font_class','') }}">
+
+{% from "_avatar.html" import site_logo, user_avatar %}
+{% from "_icons.html" import icon %}
+
+<div class="overlay" id="overlay"></div>
+<div class="shell">
+
+<aside class="sidebar" id="sidebar">
+  <button class="sidebar-close" id="sidebar-close" aria-label="Close">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+         fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
+
+  {# ── Quick actions ── #}
+  <div class="quick-panel">
+    <div class="quick-head">
+      <span class="quick-title">⚡ Quick actions</span>
+    </div>
+    {% set _studies = recent_studies_for_sidebar() if recent_studies_for_sidebar is defined else [] %}
+    {% if _studies %}
+    {% for s in _studies %}
+    <div class="quick-study">
+      <span class="quick-study-code">{{ s.study_code }}</span>
+      <div class="quick-study-actions">
+        <a href="{{ url_for('participants_list') }}?study_id={{ s.id }}" title="Participants">👥</a>
+        <a href="{{ url_for('participant_new') }}" title="Add">➕</a>
+        <a href="{{ url_for('print_participants_summary', sid=s.id) }}" target="_blank" title="Print">🖨</a>
+        <a href="{{ url_for('export_study', sid=s.id, fmt='xlsx') }}" title="Export">⬇</a>
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="quick-empty">No studies yet</div>
+    {% endif %}
+    <div class="quick-globals">
+      <a href="{{ url_for('quick_entry_page') }}" style="background:#ecfdf5;border-color:#a7f3d0;color:#0f766e;font-weight:800">⚡ Quick Entry</a>
+      <a href="{{ url_for('study_new') }}">New study</a>
+      <a href="{{ url_for('participants_list') }}">Participants</a>
+      <a href="{{ url_for('print_hub') }}">Print</a>
+      <a href="{{ url_for('analysis_hub') }}">Analysis</a>
+    </div>
+  </div>
+
+  {# ── Navigation ── #}
+  <nav class="sb-nav">
+
+    <div class="sb-items sb-flat">
+      <a href="{{ url_for('dashboard') }}" data-path="/" data-exact="1">
+        {{ icon('dashboard', 18, 'currentColor', 1.75) }}
+        Dashboard
+      </a>
+      <a href="{{ url_for('quick_entry_page') }}" data-path="/quick-entry"
+         style="background:#ecfdf5;border-left-color:#0f766e;color:#0f766e;font-weight:700">
+        {{ icon('zap', 18, 'currentColor', 2) }}
+        Quick Entry
+      </a>
+      <a href="{{ url_for('learn_home') }}" data-path="/learn">
+        {{ icon('book-open', 18, 'currentColor', 1.75) }}
+        Learn
+      </a>
+    </div>
+
+    {% if current_user and current_user.role in ('ADMIN','RESEARCHER') %}
+
+    <div class="sb-group" data-group="workspace">
+      <button type="button" class="sb-group-head">
+        <span class="sb-group-label">Workspace</span>
+        {{ icon('chevron-down', 12, 'currentColor', 2) }}
+      </button>
+      <div class="sb-items">
+        <a href="{{ url_for('studies_list') }}" data-path="/studies">
+          {{ icon('flask', 18, 'currentColor', 1.75) }} Studies
+        </a>
+        <a href="{{ url_for('participants_list') }}" data-path="/participants">
+          {{ icon('users', 18, 'currentColor', 1.75) }} Participants
+        </a>
+        <a href="{{ url_for('parameters_list') }}" data-path="/parameters" data-exact="1">
+          {{ icon('microscope', 18, 'currentColor', 1.75) }} Parameters
+        </a>
+        <a href="{{ url_for('parameter_library_page') }}" data-path="/parameters/library" class="sb-sub">
+          Parameter library
+        </a>
+        <a href="{{ url_for('forms_list') }}" data-path="/forms">
+          {{ icon('layout-template', 18, 'currentColor', 1.75) }} Forms
+        </a>
+        <a href="{{ url_for('formulas_list') }}" data-path="/formulas" data-exact="1">
+          {{ icon('sigma', 18, 'currentColor', 1.75) }} Formulas
+        </a>
+        <a href="{{ url_for('formula_library_page') }}" data-path="/formulas/library" class="sb-sub">
+          Formula library
+        </a>
+      </div>
+    </div>
+
+    <div class="sb-group" data-group="data">
+      <button type="button" class="sb-group-head">
+        <span class="sb-group-label">Data</span>
+        {{ icon('chevron-down', 12, 'currentColor', 2) }}
+      </button>
+      <div class="sb-items">
+        <a href="{{ url_for('records_list') }}" data-path="/records">
+          {{ icon('file-text', 18, 'currentColor', 1.75) }} Records
+        </a>
+        <a href="{{ url_for('visits_upcoming') }}" data-path="/visits">
+          {{ icon('clipboard', 18, 'currentColor', 1.75) }} Visits
+        </a>
+        <a href="{{ url_for('specimens_all') }}" data-path="/specimens">
+          {{ icon('flask', 18, 'currentColor', 1.75) }} Biospecimens
+        </a>
+        <a href="{{ url_for('recruitment_page') }}" data-path="/recruitment">
+          {{ icon('activity', 18, 'currentColor', 1.75) }} Recruitment
+        </a>
+        <a href="{{ url_for('adverse_list') }}" data-path="/adverse">
+          {{ icon('activity', 18, 'currentColor', 1.75) }} Adverse events
+        </a>
+        <a href="{{ url_for('quality_page') }}" data-path="/quality">
+          {{ icon('shield-check', 18, 'currentColor', 1.75) }} Data quality
+        </a>
+        <a href="{{ url_for('alerts_page') }}" data-path="/alerts">
+          {{ icon('bell', 18, 'currentColor', 1.75) }} Critical alerts
+        </a>
+        <a href="{{ url_for('reliability_page') }}" data-path="/reliability">
+          {{ icon('activity', 18, 'currentColor', 1.75) }} Reliability
+        </a>
+        <a href="{{ url_for('criteria_landing') }}" data-path="/criteria">
+          {{ icon('target', 18, 'currentColor', 1.75) }} Criteria &amp; groups
+        </a>
+        <a href="{{ url_for('query_builder') }}" data-path="/query">
+          {{ icon('bar-chart-3', 18, 'currentColor', 1.75) }} Query builder
+        </a>
+      </div>
+    </div>
+
+    <div class="sb-group" data-group="analysis">
+      <button type="button" class="sb-group-head">
+        <span class="sb-group-label">Analysis</span>
+        {{ icon('chevron-down', 12, 'currentColor', 2) }}
+      </button>
+      <div class="sb-items">
+        <a href="{{ url_for('analysis_hub') }}" data-path="/analysis">
+          {{ icon('flask', 18, 'currentColor', 1.75) }} Analysis
+        </a>
+        <a href="{{ url_for('statistics_page') }}" data-path="/statistics">
+          {{ icon('bar-chart', 18, 'currentColor', 1.75) }} Statistics
+        </a>
+        <a href="{{ url_for('graphs_page') }}" data-path="/graphs">
+          {{ icon('line-chart', 18, 'currentColor', 1.75) }} Graphs
+        </a>
+        <a href="{{ url_for('longitudinal_page') }}" data-path="/longitudinal">
+          {{ icon('line-chart', 18, 'currentColor', 1.75) }} Longitudinal
+        </a>
+      </div>
+    </div>
+
+    <div class="sb-group" data-group="reports">
+      <button type="button" class="sb-group-head">
+        <span class="sb-group-label">Reports &amp; data</span>
+        {{ icon('chevron-down', 12, 'currentColor', 2) }}
+      </button>
+      <div class="sb-items">
+        <a href="{{ url_for('print_hub') }}" data-path="/print" data-exact="1">
+          {{ icon('printer', 18, 'currentColor', 1.75) }} Print center
+        </a>
+        <a href="{{ url_for('export_page') }}" data-path="/export" data-exact="1">
+          {{ icon('download', 18, 'currentColor', 1.75) }} Export
+        </a>
+        <a href="{{ url_for('data_dictionary_page') }}" data-path="/data-dictionary">
+          {{ icon('book-open', 18, 'currentColor', 1.75) }} Data dictionary
+        </a>
+        <a href="{{ url_for('deidentify_export') }}" data-path="/export/deidentify">
+          {{ icon('lock', 18, 'currentColor', 1.75) }} De-identified export
+        </a>
+        <a href="{{ url_for('import_page') }}" data-path="/import">
+          {{ icon('upload', 18, 'currentColor', 1.75) }} Import
+        </a>
+      </div>
+    </div>
+
+    {% endif %}
+
+    {% if current_user and current_user.role == 'ADMIN' %}
+    <div class="sb-group" data-group="admin">
+      <button type="button" class="sb-group-head">
+        <span class="sb-group-label">Admin</span>
+        {{ icon('chevron-down', 12, 'currentColor', 2) }}
+      </button>
+      <div class="sb-items">
+        <a href="{{ url_for('users_page') }}" data-path="/users">
+          {{ icon('user-cog', 18, 'currentColor', 1.75) }} Users
+        </a>
+        <a href="{{ url_for('audit_page') }}" data-path="/audit">
+          {{ icon('scroll', 18, 'currentColor', 1.75) }} Audit log
+        </a>
+        <a href="{{ url_for('health_check') }}" data-path="/health">
+          {{ icon('heart-pulse', 18, 'currentColor', 1.75) }} System health
+        </a>
+        <a href="{{ url_for('backups_page') }}" data-path="/backups">
+          {{ icon('database', 18, 'currentColor', 1.75) }} Backups
+        </a>
+        <a href="{{ url_for('settings_page') }}" data-path="/settings">
+          {{ icon('settings', 18, 'currentColor', 1.75) }} Settings
+        </a>
+        <a href="{{ url_for('print_settings') }}" data-path="/print/settings" class="sb-sub">
+          Print settings
+        </a>
+        <a href="{{ url_for('brand_page') }}" data-path="/admin/brand" class="sb-sub">
+          Brand assets
+        </a>
+        <a href="{{ url_for('email_settings') }}" data-path="/admin/email" class="sb-sub">
+          Email settings
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="sb-items sb-flat sb-account">
+      <a href="{{ url_for('avatar_picker') }}" data-path="/profile/avatar">
+        {{ icon('image', 18, 'currentColor', 1.75) }} My avatar
+      </a>
+      <a href="{{ url_for('profile_edit') }}" data-path="/profile/edit">
+        {{ icon('user', 18, 'currentColor', 1.75) }} My profile
+      </a>
+      <a href="{{ url_for('two_factor_page') }}" data-path="/profile/2fa">
+        {{ icon('shield', 18, 'currentColor', 1.75) }} Two-factor
+      </a>
+      <a href="{{ url_for('profile_password') }}" data-path="/profile/password">
+        {{ icon('key', 18, 'currentColor', 1.75) }} Password
+      </a>
+      <a href="{{ url_for('account_sessions') }}" data-path="/account/sessions">
+        {{ icon('monitor', 18, 'currentColor', 1.75) }} Sessions
+      </a>
+      <form method="post" action="{{ url_for('logout') }}" style="margin:0;padding:0">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button type="submit" data-path="/logout"
+                style="display:flex;align-items:center;gap:10px;width:100%;height:36px;
+                       padding:0 12px;border:0;border-radius:8px;background:transparent;
+                       color:var(--sidebar-text);font:inherit;font-size:13px;
+                       font-weight:500;cursor:pointer;text-align:left">
+          {{ icon('log-out', 18, 'currentColor', 1.75) }}
+          Logout
+        </button>
+      </form>
+    </div>
+
+  </nav>
+</aside>
+
+<main>
+  <header class="topbar">
+    <button class="hamb" id="menu" aria-label="Menu">{{ icon("menu", 22, "#0f172a", 2) }}</button>
+
+    <span class="topbar-logo" aria-hidden="true">
+      {{ site_logo(app_settings, 38) }}
+    </span>
+
+    <div class="topbar-brand">
+      <div class="topbar-title">{{ app_name }}</div>
+      <div class="topbar-sub">Clinical Research Workspace</div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <a class="iconbtn" href="{{ url_for('dashboard') }}" title="Home" id="home-btn">
+      {{ icon('home', 18, '#94a3b8', 2) }}
+    </a>
+
+    {% if current_user %}
+      <div class="userchip" id="userchip">
+        {{ user_avatar(current_user, 32) }}
+        <div class="uc-meta">
+          <span class="uc-name">{{ display_name_of(current_user) }}</span>
+          <span class="uc-role">{{ current_user.role|capitalize }}</span>
+        </div>
+        {{ icon("chevron-down", 12, "#94a3b8", 2.5) }}
+
+        <div class="user-menu" id="user-menu">
+          <div class="um-head">
+            {{ user_avatar(current_user, 40) }}
+            <div class="um-name">
+              <b>{{ display_name_of(current_user) }}</b>
+              <small>{{ current_user.role }}</small>
+            </div>
+          </div>
+          <a class="um-item" href="{{ url_for('dashboard') }}">Dashboard</a>
+          <a class="um-item" href="{{ url_for('profile_edit') }}">My profile</a>
+          <div class="um-divider"></div>
+          <div class="um-label">My account</div>
+          <a class="um-item" href="{{ url_for('avatar_picker') }}">Avatar</a>
+          <a class="um-item" href="{{ url_for('profile_password') }}">Change password</a>
+          <a class="um-item" href="{{ url_for('two_factor_page') }}">Two-factor (2FA)</a>
+          <a class="um-item" href="{{ url_for('account_sessions') }}">Active sessions</a>
+          {% if current_user.role == 'ADMIN' %}
+          <div class="um-divider"></div>
+          <div class="um-label">Administration</div>
+          <a class="um-item" href="{{ url_for('users_page') }}">Users</a>
+          <a class="um-item" href="{{ url_for('settings_page') }}">Settings</a>
+          <a class="um-item" href="{{ url_for('print_settings') }}">Print settings</a>
+          <a class="um-item" href="{{ url_for('brand_page') }}">Brand assets</a>
+          <a class="um-item" href="{{ url_for('email_settings') }}">Email settings</a>
+          <a class="um-item" href="{{ url_for('audit_page') }}">Audit log</a>
+          <a class="um-item" href="{{ url_for('health_check') }}">System health</a>
+          <a class="um-item" href="{{ url_for('backups_page') }}">Backups</a>
+          <a class="um-item" href="{{ url_for('webauthn_manage') }}">Fingerprint login</a>
+          {% endif %}
+          <div class="um-divider"></div>
+          <form method="post" action="{{ url_for('logout') }}">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button type="submit" class="um-item danger">Logout</button>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+  </header>
+
+  <section class="content">
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}<div class="alert {{ cat }}">{{ msg }}</div>{% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </section>
+
+  <footer class="appfoot">
+    {{ app_settings.get('copyright', '© ' + app_name) }}
+  </footer>
+</main>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/colorpicker.js') }}"></script>
+{% block scripts %}{% endblock %}
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/static/sw.js").catch(() => {});
+  });
+}
+</script>
+<script src="{{ url_for('static', filename='js/navigation.js') }}"></script>
+<link rel="stylesheet" href="/theme.css?v={{ range(1000000, 9999999) | random }}">
+</body>
+</html>

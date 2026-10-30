@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% from "_avatar.html" import site_logo %}
+{% block title %}Brand assets · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div><h1>Brand assets</h1><p>Logo, favicon, login appearance.</p></div>
+</div>
+
+<div class="grid2">
+
+  {# ── Brand mark ── #}
+  <div class="card">
+    <h2>Sidebar mark</h2>
+    <p class="muted">Small icon shown next to "Research DM" in the sidebar.</p>
+    <div style="text-align:center;margin:16px 0">
+      {{ site_logo(s, 48) }}
+    </div>
+    <form method="post">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="section" value="mark">
+      <label>Type
+        <select name="brand_mark_type">
+          <option value="emoji" {% if s.get('brand_mark_type')=='emoji' %}selected{% endif %}>Emoji</option>
+          <option value="image" {% if s.get('brand_mark_type')=='image' %}selected{% endif %}>Image URL</option>
+        </select>
+      </label>
+      <label>Emoji or image URL
+        <input name="brand_mark_value" value="{{ s.get('brand_mark_value','✚') }}">
+      </label>
+      <div class="form-actions"><button class="btn primary">Save mark</button></div>
+    </form>
+  </div>
+
+  {# ── Logos ── #}
+  <div class="card">
+    <h2>Logos</h2>
+    <p class="muted">Upload or paste URLs. Leave blank to use defaults.</p>
+    <form method="post" enctype="multipart/form-data">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="section" value="logos">
+
+      <label>Brand logo (header)
+        <input type="file" name="brand_logo_file" accept="image/*">
+      </label>
+      <label>…or brand logo URL
+        <input name="brand_logo_url" value="{{ s.get('brand_logo_url','') }}">
+      </label>
+
+      <label>Favicon
+        <input type="file" name="favicon_file" accept=".ico,.png,.svg">
+      </label>
+      <label>…or favicon URL
+        <input name="favicon_url" value="{{ s.get('favicon_url','') }}">
+      </label>
+
+      <label>Login page logo
+        <input type="file" name="login_logo_file" accept="image/*">
+      </label>
+      <label>…or login logo URL
+        <input name="login_logo_url" value="{{ s.get('login_logo_url','') }}">
+      </label>
+
+      <div class="form-actions"><button class="btn primary">Save logos</button></div>
+    </form>
+  </div>
+
+  {# ── Live preview ── #}
+  <div class="card">
+    <h2>Preview</h2>
+    <div style="border:1px solid var(--border);border-radius:10px;padding:16px;
+         
+         min-height:120px;display:grid;place-items:center">
+      <div style="text-align:center">
+        {% if s.get('login_logo_url') %}
+        <img src="{{ s.get('login_logo_url') }}" style="max-height:60px;margin-bottom:8px">
+        {% else %}
+        {{ site_logo(s, 48) }}
+        {% endif %}
+        <div style="font-weight:800;color:#0f172a;margin-top:8px">{{ s.get('app_name', app_name) }}</div>
+        <div style="font-size:12px;color:#64748b">{{ s.get('app_tagline','') }}</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

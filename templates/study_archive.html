@@ -1,0 +1,36 @@
+{% extends "base.html" %}{% block title %}Archive · {{ s.study_code }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Study archive</h1><p>{{ s.study_code }} — {{ s.title }}</p></div>
+  <a class="btn" href="{{ url_for('studies_list') }}">← Studies</a>
+</div>
+
+<div class="card">
+  <h2>Download ZIP archive</h2>
+  <p class="muted">Everything needed for submission, backup or sharing.</p>
+  <div class="form-grid" style="margin-top:12px">
+    <label class="check"><input type="checkbox" checked disabled><span>Database snapshot (SQLite)</span></label>
+    <label class="check"><input type="checkbox" checked disabled><span>Data dictionary CSV</span></label>
+    <label class="check"><input type="checkbox" checked disabled><span>Participant roster + values CSV</span></label>
+    <label class="check"><input type="checkbox" checked disabled><span>Biospecimens CSV</span></label>
+    <label class="check"><input type="checkbox" checked disabled><span>Uploaded files (if any)</span></label>
+  </div>
+  <div class="form-actions" style="margin-top:14px">
+    <a class="btn primary" href="{{ url_for('study_archive_download', sid=s.id) }}">
+      📦 Download ZIP archive
+    </a>
+  </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+  <h2>What's inside</h2>
+  <pre style="font-size:12px;line-height:1.6;background:#f8fafc;padding:14px;border-radius:10px">{{ s.study_code }}_archive_YYYYMMDD_HHMM.zip
+├── README.txt
+├── database/research.db
+├── data_dictionary.csv
+├── participants.csv
+├── study_values.csv
+├── biospecimens.csv
+└── uploads/                 (participant attachments)</pre>
+</div>
+{% endblock %}

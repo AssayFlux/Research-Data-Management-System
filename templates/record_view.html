@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Record #{{ r.id }} · {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="pagehead">
+  <div>
+    <h1>Record #{{ r.id }}</h1>
+    <p>
+      <a href="{{ url_for('participant_detail', pid=r.pid) }}">{{ r.participant_code }}</a>
+      · {{ r.study_code }}
+      {% if r.visit_date %} · Visit {{ r.visit_date }}{% endif %}
+    </p>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <a class="btn" href="{{ url_for('records_list') }}">← All records</a>
+    {% if not r.locked %}
+      <a class="btn primary" href="{{ url_for('record_edit', rid=r.id) }}">✏️ Edit record</a>
+      <form method="post" action="{{ url_for('record_lock', rid=r.id) }}" style="display:inline">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="btn">🔒 Lock record</button>
+      </form>
+    {% else %}
+      <span class="badge success">🔒 Locked</span>
+      {% if current_user.role == 'ADMIN' %}
+      <form method="post" action="{{ url_for('record_unlock', rid=r.id) }}" style="display:inline">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="btn">🔓 Unlock (Admin)</button>
+      </form>
+      {% endif %}
+    {% endif %}
+    <a class="btn" href="{{ url_for('record_history', rid=r.id) }}">📜 History</a>
+  </div>
+</div>
+
+{% if r.locked %}
+  <div class="alert warning">🔒 <b>Locked record</b> — {{ r.lock_reason or 'verified' }}. Editing is disabled.</div>
+{% endif %}
+<div class="card">
+  <div class="status-list">
+    <div>Entered by <b>{{ r.username or '—' }}</b></div>
+    <div>Created <b>{{ r.created_at }}</b></div>
+    <div>Visit date <b>{{ r.visit_date or '—' }}</b></div>
+    <div>Edits <b>{{ r.edit_count or 0 }}</b></div>
+  </div>
+</div>
+
+{% for cat, items in grouped %}
+<div class="card" style="margin-top:12px">
+  <h2>{{ cat }}</h2>
+  <table>
+    <thead>
+      <tr><th>Parameter</th><th>Value</th><th>Unit</th>
+          <th>Reference</th><th>State</th></tr>
+    </thead>
+    <tbody>
+      {% for v in items %}
+      <tr>
+        <td><b>{{ v.pname }}</b><br><small class="muted">{{ v.pcode }}</small></td>
+        <td>
+          {% if v.numeric_value is not none %}
+            <span style="font-family:var(--mono)">{{ v.numeric_value }}</span>
+          {% else %}
+            {{ v.value_text or '—' }}
+          {% endif %}
+        </td>
+        <td>{{ v.unit or '—' }}</td>
+        <td>
+          {% if v.ref_text %}{{ v.ref_text }}
+          {% elif v.ref_low is not none or v.ref_high is not none %}
+            {{ v.ref_low if v.ref_low is not none else '' }}–{{ v.ref_high if v.ref_high is not none else '' }}
+          {% else %}—{% endif %}
+        </td>
+        <td><span class="badge">{{ v.value_state }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted">No values in this record.</p></div>
+{% endfor %}
+
+{% endblock %}
