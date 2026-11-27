@@ -118,6 +118,7 @@ private val destinations = listOf(
     RdmsDestination("My avatar", "Account", "◉"),
     RdmsDestination("My profile", "Account", "♙"),
     RdmsDestination("Two-factor", "Account", "▣"),
+    RdmsDestination("Security", "Account", "🔒"),
     RdmsDestination("Password", "Account", "⌑"),
     RdmsDestination("Sessions", "Account", "▤")
 )
@@ -237,8 +238,16 @@ fun RdmsApp() {
                                 onClick = { selected = "My profile"; accountMenuExpanded = false }
                             )
                             DropdownMenuItem(
-                                text = { Text("Security & password") },
+                                text = { Text("Security") },
                                 onClick = { selected = "Security"; accountMenuExpanded = false }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Two-factor authentication") },
+                                onClick = { selected = "Two-factor"; accountMenuExpanded = false }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Password") },
+                                onClick = { selected = "Password"; accountMenuExpanded = false }
                             )
                             DropdownMenuItem(
                                 text = { Text("Settings") },
@@ -252,10 +261,7 @@ fun RdmsApp() {
                                 text = { Text("Backups") },
                                 onClick = { selected = "Backups"; accountMenuExpanded = false }
                             )
-                            DropdownMenuItem(
-                                text = { Text("Lock app") },
-                                onClick = { selected = "Lock app"; accountMenuExpanded = false }
-                            )
+
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
