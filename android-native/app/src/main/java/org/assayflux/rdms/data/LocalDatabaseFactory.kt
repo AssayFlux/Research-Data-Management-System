@@ -2,7 +2,6 @@ package org.assayflux.rdms.data
 
 import android.content.Context
 import androidx.room.Room
-import net.sqlcipher.database.SQLiteDatabase
 import net.sqlcipher.database.SupportFactory
 import org.assayflux.rdms.security.DeviceKeyStore
 import java.security.MessageDigest
@@ -35,8 +34,11 @@ object LocalDatabaseFactory {
             val envelope = Base64.getDecoder().decode(wrapped)
             org.assayflux.rdms.security.AuthenticatedEncryption.decrypt(envelope, wrappingKey)
         }
-        val factory = SupportFactory(SQLiteDatabase.getBytes(passphrase))
+        // SupportFactory accepts a character passphrase. Base64 keeps the random key
+        // material lossless and avoids interpreting arbitrary random bytes as UTF-8.
+        val sqlCipherPassphrase = Base64.getEncoder().encodeToString(passphrase).toCharArray()
         passphrase.fill(0)
+        val factory = SupportFactory(sqlCipherPassphrase)
         return Room.databaseBuilder(context, RdmsDatabase::class.java, "rdms-local.db")
             .openHelperFactory(factory)
             .addMigrations(MIGRATION_1_2)
