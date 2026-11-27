@@ -25,6 +25,12 @@ This register is intentionally conservative: a feature is not complete until its
 | Migration | Read-only legacy import with reconciliation | Not implemented |
 | Backup/restore | Password-protected encrypted archive, USB/SAF transfer, atomic restore | Not implemented |
 
+
+| Research materials | Encrypted PDF/TXT/DOCX import, parsing, OCR and source provenance | Partial: TXT/Markdown parser contracts only |
+| Research Intelligence | Passage-linked extraction, one-page brief, review workflow, multi-paper synthesis | Partial: contracts and brief UI; no model or PDF/DOCX parser |
+| Molecularis integration | Kotlin scientific knowledge/evidence contracts and A–N adapter boundary | Partial: design and evidence-first claim contracts |
+| Browser / Chromium research source | Approved browser/search adapter with consent and source provenance | Not specified; awaiting exact API choice and online-mode approval |
+
 ## Audit findings to carry into implementation
 - Reconcile the QR endpoint names registered by the QR router with the central study-access allowlist; add authorization tests for every QR route.
 - Replace QR payloads containing participant attributes or measurements with random opaque local references.
