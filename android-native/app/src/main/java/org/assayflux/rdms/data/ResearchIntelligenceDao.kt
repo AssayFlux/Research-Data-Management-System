@@ -12,6 +12,12 @@ interface ResearchIntelligenceDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertMaterial(material: ResearchMaterialEntity)
 
+    @Query("SELECT * FROM research_materials WHERE id = :materialId LIMIT 1")
+    suspend fun getMaterial(materialId: String): ResearchMaterialEntity?
+
+    @Query("UPDATE research_materials SET extractionState = :state WHERE id = :materialId")
+    suspend fun setExtractionState(materialId: String, state: String)
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertPassages(passages: List<ResearchPassageEntity>)
 
