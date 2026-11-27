@@ -39,6 +39,7 @@ object LocalDatabaseFactory {
         passphrase.fill(0)
         return Room.databaseBuilder(context, RdmsDatabase::class.java, "rdms-local.db")
             .openHelperFactory(factory)
+            .addMigrations(MIGRATION_1_2)
             .build()
     }
 }
