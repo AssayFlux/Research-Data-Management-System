@@ -32,7 +32,6 @@ import kotlinx.coroutines.withContext
 import org.assayflux.rdms.data.AuditEventEntity
 import org.assayflux.rdms.data.ParticipantEntity
 import org.assayflux.rdms.data.LocalDatabaseFactory
-import org.assayflux.rdms.data.ParticipantEntity
 import org.assayflux.rdms.data.StudyEntity
 import java.util.UUID
 
