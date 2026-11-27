@@ -75,6 +75,26 @@ interface ResearchDomainDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertRecord(record: ResearchRecordEntity)
 
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertRecordValues(values: List<ResearchRecordValueEntity>)
+
+    @Transaction
+    suspend fun createRecordWithValuesAndAudit(
+        record: ResearchRecordEntity,
+        values: List<ResearchRecordValueEntity>,
+        event: AuditEventEntity
+    ) {
+        insertRecord(record)
+        if (values.isNotEmpty()) insertRecordValues(values)
+        appendAuditEvent(event)
+    }
+
+    @Transaction
+    suspend fun lockRecordWithAudit(recordId: String, lockedAt: Long, event: AuditEventEntity) {
+        check(lockRecord(recordId, lockedAt) == 1) { "Record is already locked or no longer exists" }
+        appendAuditEvent(event)
+    }
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveRecordValue(value: ResearchRecordValueEntity)
 
