@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "RDMS Research Capture",
+  "description": "Capture a researcher-opened web page into a portable evidence package for offline RDMS import.",
+  "version": "0.1.0",
+  "minimum_chrome_version": "110",
+  "action": {
+    "default_title": "Capture page for RDMS",
+    "default_popup": "popup.html"
+  },
+  "permissions": ["activeTab", "scripting", "downloads"]
+}
