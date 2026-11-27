@@ -11,9 +11,19 @@ import androidx.room.RoomDatabase
         ResearchMaterialEntity::class,
         ResearchPassageEntity::class,
         ResearchClaimEntity::class,
-        ClaimPassageLinkEntity::class
+        ClaimPassageLinkEntity::class,
+        ResearchParameterEntity::class,
+        ResearchFormEntity::class,
+        ResearchFormFieldEntity::class,
+        ResearchVisitEntity::class,
+        ResearchRecordEntity::class,
+        ResearchRecordValueEntity::class,
+        ResearchBiospecimenEntity::class,
+        ResearchAdverseEventEntity::class,
+        ResearchQualityIssueEntity::class,
+        StudyAssignmentEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 abstract class RdmsDatabase : RoomDatabase() {
