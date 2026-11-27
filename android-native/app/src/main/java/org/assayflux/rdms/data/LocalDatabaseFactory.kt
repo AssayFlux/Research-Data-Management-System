@@ -20,7 +20,13 @@ object LocalDatabaseFactory {
     private const val PREFS = "rdms_key_material"
     private const val WRAPPED = "wrapped_sqlcipher_passphrase"
 
-    fun create(context: Context): RdmsDatabase {
+    @Volatile private var instance: RdmsDatabase? = null
+
+    fun create(context: Context): RdmsDatabase = instance ?: synchronized(this) {
+        instance ?: open(context.applicationContext).also { instance = it }
+    }
+
+    private fun open(context: Context): RdmsDatabase {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val wrappingKey = DeviceKeyStore.getOrCreateAesKey()
         val wrapped = prefs.getString(WRAPPED, null)
