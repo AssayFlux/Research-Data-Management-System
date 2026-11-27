@@ -2,6 +2,7 @@ package org.assayflux.rdms.data
 
 import android.content.Context
 import org.assayflux.rdms.ai.ChromeCaptureResearchExtractor
+import org.assayflux.rdms.ai.DocxResearchExtractor
 import org.assayflux.rdms.ai.ResearchMaterialTextExtractor
 import org.assayflux.rdms.ai.PlainTextResearchExtractor
 import org.assayflux.rdms.security.AttachmentVault
@@ -22,7 +23,8 @@ class ResearchIntelligenceRepository(
     private val context: Context,
     private val dao: ResearchIntelligenceDao,
     private val plainTextExtractor: ResearchMaterialTextExtractor = PlainTextResearchExtractor(),
-    private val chromeExtractor: ResearchMaterialTextExtractor = ChromeCaptureResearchExtractor()
+    private val chromeExtractor: ResearchMaterialTextExtractor = ChromeCaptureResearchExtractor(),
+    private val docxExtractor: ResearchMaterialTextExtractor = DocxResearchExtractor()
 ) {
     suspend fun extractMaterial(materialId: String): MaterialExtractionResult {
         val material = dao.getMaterial(materialId) ?: error("Research material not found")
@@ -38,6 +40,7 @@ class ResearchIntelligenceRepository(
             }
             val extractor = when (material.mediaType) {
                 "application/vnd.rdms.web-capture+json" -> chromeExtractor
+                DocxResearchExtractor.DOCX_MEDIA_TYPE -> docxExtractor
                 "text/plain", "text/markdown", "text/x-markdown" -> plainTextExtractor
                 else -> error("No offline extractor is available for ${material.mediaType}; PDF/DOCX/OCR adapters are pending")
             }
