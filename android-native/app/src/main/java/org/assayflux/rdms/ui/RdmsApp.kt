@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,6 +19,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
@@ -83,7 +87,9 @@ private val destinations = listOf(
     RdmsDestination("Participants", "Workspace", "♙"),
     RdmsDestination("Parameters", "Workspace", "⌘"),
     RdmsDestination("Forms", "Workspace", "▧"),
+    RdmsDestination("Parameter library", "Workspace", "⌕"),
     RdmsDestination("Formulas", "Workspace", "∑"),
+    RdmsDestination("Formula library", "Workspace", "⌕"),
     RdmsDestination("Records", "Data", "▣"),
     RdmsDestination("Visits", "Data", "◷"),
     RdmsDestination("Biospecimens", "Data", "⚗"),
@@ -100,12 +106,20 @@ private val destinations = listOf(
     RdmsDestination("Longitudinal", "Analysis", "↗"),
     RdmsDestination("Print center", "Reports & data", "▤"),
     RdmsDestination("Export", "Reports & data", "↓"),
+    RdmsDestination("Data dictionary", "Reports & data", "▤"),
+    RdmsDestination("De-identified export", "Reports & data", "◇"),
     RdmsDestination("Import", "Reports & data", "↑"),
     RdmsDestination("Research Intelligence", "Research", "✦"),
     RdmsDestination("Users & roles", "Admin", "♙"),
     RdmsDestination("Audit log", "Admin", "≡"),
+    RdmsDestination("System health", "Admin", "♥"),
     RdmsDestination("Backups", "Admin", "▣"),
-    RdmsDestination("Settings", "Admin", "⚙")
+    RdmsDestination("Settings", "Admin", "⚙"),
+    RdmsDestination("My avatar", "Account", "◉"),
+    RdmsDestination("My profile", "Account", "♙"),
+    RdmsDestination("Two-factor", "Account", "▣"),
+    RdmsDestination("Password", "Account", "⌑"),
+    RdmsDestination("Sessions", "Account", "▤")
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -114,6 +128,8 @@ fun RdmsApp() {
     var selected by remember { mutableStateOf("Dashboard") }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    var accountMenuExpanded by remember { mutableStateOf(false) }
+    var expandedGroups by remember { mutableStateOf(setOf("Workspace", "Data", "Analysis", "Reports & data", "Research", "Admin", "Account")) }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -122,7 +138,7 @@ fun RdmsApp() {
                 drawerContainerColor = Color.White,
                 drawerContentColor = RdmsBody
             ) {
-                Column(Modifier.padding(horizontal = 12.dp, vertical = 18.dp)) {
+                Column(Modifier.fillMaxHeight().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 18.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(8.dp)) {
                         Box(
                             Modifier.size(38.dp).background(RdmsTeal, RoundedCornerShape(11.dp)),
@@ -134,16 +150,38 @@ fun RdmsApp() {
                             Text("Clinical Research Workspace", color = RdmsMuted, fontSize = 10.sp)
                         }
                     }
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFECFDF5)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFA7F3D0)),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp)
+                    ) {
+                        Column(Modifier.padding(10.dp)) {
+                            Text("⚡ QUICK ACTIONS", color = Color(0xFF065F46), fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 8.dp)) {
+                                listOf("Quick Entry", "Studies", "Participants").forEach { target ->
+                                    androidx.compose.material3.OutlinedButton(
+                                        onClick = { selected = target; scope.launch { drawerState.close() } },
+                                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                    ) { Text(target, fontSize = 10.sp, maxLines = 1) }
+                                }
+                            }
+                        }
+                    }
                     destinations.groupBy { it.group }.forEach { (group, items) ->
-                        Text(
-                            group.uppercase(),
-                            color = RdmsMuted,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.1.sp,
-                            modifier = Modifier.padding(start = 12.dp, top = 18.dp, bottom = 6.dp)
-                        )
-                        items.forEach { item ->
+                        androidx.compose.material3.TextButton(
+                            onClick = {
+                                expandedGroups = if (group in expandedGroups) expandedGroups - group else expandedGroups + group
+                            },
+                            modifier = Modifier.fillMaxWidth().height(38.dp),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp)
+                        ) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text(group.uppercase(), color = RdmsMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.1.sp)
+                                Text(if (group in expandedGroups) "⌄" else "›", color = RdmsMuted, fontSize = 16.sp)
+                            }
+                        }
+                        if (group in expandedGroups) items.forEach { item ->
                             NavigationDrawerItem(
                                 label = { Text(item.title, fontSize = 13.sp) },
                                 selected = selected == item.title,
@@ -176,6 +214,48 @@ fun RdmsApp() {
                     navigationIcon = {
                         androidx.compose.material3.TextButton(onClick = { scope.launch { drawerState.open() } }) {
                             Text("☰", fontSize = 22.sp, color = RdmsInk)
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { selected = "Dashboard" }) { Text("⌂", color = RdmsMuted, fontSize = 21.sp) }
+                        androidx.compose.material3.TextButton(onClick = { accountMenuExpanded = true }) {
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text("Local user", color = RdmsInk, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                Text("Device session  ⌄", color = RdmsMuted, fontSize = 9.sp)
+                            }
+                        }
+                        DropdownMenu(
+                            expanded = accountMenuExpanded,
+                            onDismissRequest = { accountMenuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Local user") },
+                                onClick = { accountMenuExpanded = false }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("My profile") },
+                                onClick = { selected = "My profile"; accountMenuExpanded = false }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Security & password") },
+                                onClick = { selected = "Security"; accountMenuExpanded = false }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Settings") },
+                                onClick = { selected = "Settings"; accountMenuExpanded = false }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Audit log") },
+                                onClick = { selected = "Audit log"; accountMenuExpanded = false }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Backups") },
+                                onClick = { selected = "Backups"; accountMenuExpanded = false }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Lock app") },
+                                onClick = { selected = "Lock app"; accountMenuExpanded = false }
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
