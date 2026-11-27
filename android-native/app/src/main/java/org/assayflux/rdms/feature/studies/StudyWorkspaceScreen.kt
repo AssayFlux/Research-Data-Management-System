@@ -97,7 +97,7 @@ fun StudyWorkspaceScreen(initialSection: String = "Studies") {
                         val id = UUID.randomUUID().toString()
                         try {
                             withContext(Dispatchers.IO) {
-                                dao.insertStudy(
+                                dao.createStudyWithAudit(
                                     StudyEntity(
                                         id = id,
                                         studyCode = studyCode.trim(),
@@ -105,9 +105,7 @@ fun StudyWorkspaceScreen(initialSection: String = "Studies") {
                                         description = studyDescription.trim(),
                                         createdAtEpochMillis = now,
                                         updatedAtEpochMillis = now
-                                    )
-                                )
-                                dao.appendAuditEvent(
+                                    ),
                                     AuditEventEntity(
                                         id = UUID.randomUUID().toString(),
                                         actorId = "local-user",
@@ -178,16 +176,14 @@ fun StudyWorkspaceScreen(initialSection: String = "Studies") {
                             val id = UUID.randomUUID().toString()
                             try {
                                 withContext(Dispatchers.IO) {
-                                    dao.insertParticipant(
+                                    dao.createParticipantWithAudit(
                                         ParticipantEntity(
                                             id = id, studyId = studyId,
                                             participantCode = participantCode.trim(),
                                             displayLabel = participantLabel.trim(),
                                             consentStatus = "PENDING",
                                             createdAtEpochMillis = now
-                                        )
-                                    )
-                                    dao.appendAuditEvent(
+                                        ),
                                         AuditEventEntity(
                                             id = UUID.randomUUID().toString(),
                                             actorId = "local-user",
