@@ -15,7 +15,7 @@ This directory is an isolated native Android development track. The legacy Flask
 This is an early engineering foundation, **not a usable RDMS beta and not approved for real research data**.
 
 Implemented in source:
-- Native Compose launcher.
+- Native Compose launcher and a dashboard/navigation shell that follows the legacy website's teal palette, pale-green hero, compact metric cards, grouped navigation, and clinical-workspace header.
 - Initial biometric/device-credential prompt screen.
 - Secure-window flag to block screenshots/recents previews.
 - Initial Room entities/DAO for studies, participants, and audit events.
@@ -23,6 +23,7 @@ Implemented in source:
 - Android Keystore AES key helper and AES-GCM authenticated payload/streaming attachment primitives.
 - Explicit study access policy with deny-by-default behavior and unit tests.
 - Initial encrypted backup envelope primitive.
+- A bounded validator/catalog importer for user-selected RDMS Chrome capture JSON packages; captured originals are encrypted in app-private storage and catalogued in Room.
 - GitHub Actions workflow intended to compile the debug APK and run unit tests.
 
 Not implemented or not verified:
@@ -36,6 +37,9 @@ Not implemented or not verified:
 - End-to-end, instrumentation, security, offline-network, and device testing.
 - Successful Gradle build and installable APK artifact.
 
+
+## UI preservation
+The native UI is being ported from the legacy website rather than redesigned from scratch. The dashboard and navigation shell reuse the source design tokens (`#0f766e` teal, `#f7f9fb` canvas, white cards, `#e5e9ef` borders), section hierarchy, and dashboard quick-action/KPI layout. Website templates and CSS remain reference material only; no WebView or website runtime is included in the APK.
 
 ## Molecularis and research intelligence
 The integration direction and security/evidence rules are documented in [MOLECULARIS_INTEGRATION_AND_RESEARCH_INTELLIGENCE.md](docs/MOLECULARIS_INTEGRATION_AND_RESEARCH_INTELLIGENCE.md). Initial Kotlin contracts, Room entities, DAO and a one-page brief UI have been added for research materials. Only bounded TXT/Markdown parsing is currently implemented; PDF/DOCX extraction, OCR, an on-device AI model, multi-paper synthesis, and a browser/search connector are not complete. Do not describe these features as operational yet.
