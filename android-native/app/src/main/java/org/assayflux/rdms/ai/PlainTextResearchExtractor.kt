@@ -64,7 +64,7 @@ class PlainTextResearchExtractor(
                 currentHeading = heading
             } else {
                 if (body.isEmpty()) bodyStart = offset
-                body.append(line).append('\n')
+                body.append(lineWithEnding).append('\n')
             }
             offset += lineWithEnding.length + 1
         }
