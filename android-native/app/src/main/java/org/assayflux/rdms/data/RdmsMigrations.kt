@@ -128,7 +128,7 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         """.trimIndent())
         db.execSQL("CREATE INDEX IF NOT EXISTS index_research_visits_studyId ON research_visits(studyId)")
         db.execSQL("CREATE INDEX IF NOT EXISTS index_research_visits_participantId ON research_visits(participantId)")
-        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_research_visits_studyId_visitCode ON research_visits(studyId, visitCode)")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_research_visits_studyId_participantId_visitCode ON research_visits(studyId, participantId, visitCode)")
 
         db.execSQL("""
             CREATE TABLE IF NOT EXISTS research_records (
