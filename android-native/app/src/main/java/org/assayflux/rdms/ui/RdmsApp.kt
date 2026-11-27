@@ -205,7 +205,11 @@ fun RdmsApp() {
             topBar = {
                 TopAppBar(
                     title = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                            Box(
+                                Modifier.size(34.dp).background(RdmsTeal, RoundedCornerShape(10.dp)),
+                                contentAlignment = Alignment.Center
+                            ) { Text("R", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp) }
                             Column {
                                 Text("RDMS", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = RdmsInk)
                                 Text("Clinical Research Workspace", fontSize = 10.sp, color = RdmsMuted)
@@ -318,7 +322,10 @@ private fun DashboardContent(modifier: Modifier = Modifier, onNavigate: (String)
             Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text("WELCOME BACK", color = RdmsTeal, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.4.sp)
-                    Text("Your research workspace", color = RdmsInk, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Your research workspace", color = RdmsInk, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("LOCAL", color = RdmsTeal, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    }
                     Text("Your research data. Organized. Secure. Accessible.", color = RdmsBody, fontSize = 12.sp)
                 }
                 Text("⚗", fontSize = 42.sp)
