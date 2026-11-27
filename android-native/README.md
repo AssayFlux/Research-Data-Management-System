@@ -24,6 +24,9 @@ Implemented in source:
 - Explicit study access policy with deny-by-default behavior and unit tests.
 - Initial encrypted backup envelope primitive.
 - A bounded validator/catalog importer for user-selected RDMS Chrome capture JSON packages; captured originals are encrypted in app-private storage and catalogued in Room.
+- An offline Research Intelligence library screen wired into native navigation, with SAF import and extraction actions.
+- A local extraction coordinator that decrypts files in memory, reads AES-GCM streams to EOF for tag verification, and stores TXT/Markdown/Chrome-capture passages in the encrypted Room database.
+- A Chrome-capture text adapter that preserves source URL and warns about missing DOM context, tables, figures and supplementary files.
 - GitHub Actions workflow intended to compile the debug APK and run unit tests.
 
 Not implemented or not verified:
