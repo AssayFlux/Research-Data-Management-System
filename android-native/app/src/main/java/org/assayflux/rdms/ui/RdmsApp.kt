@@ -47,6 +47,7 @@ import org.assayflux.rdms.feature.research.ResearchIntelligenceScreen
 import org.assayflux.rdms.feature.studies.StudyWorkspaceScreen
 import org.assayflux.rdms.feature.studies.ParametersScreen
 import org.assayflux.rdms.feature.studies.FormsScreen
+import org.assayflux.rdms.feature.studies.RecordsScreen
 
 private val RdmsTeal = Color(0xFF0F766E)
 private val RdmsInk = Color(0xFF0F172A)
@@ -201,6 +202,10 @@ fun RdmsApp() {
             } else if (selected == "Forms") {
                 Column(Modifier.padding(innerPadding)) {
                     FormsScreen()
+                }
+            } else if (selected == "Records" || selected == "Quick Entry") {
+                Column(Modifier.padding(innerPadding)) {
+                    RecordsScreen()
                 }
             } else {
                 DestinationContent(
