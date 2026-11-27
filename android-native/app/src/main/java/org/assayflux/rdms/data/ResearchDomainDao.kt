@@ -20,6 +20,17 @@ interface ResearchDomainDao {
     suspend fun appendAuditEvent(event: AuditEventEntity)
 
     @Transaction
+    suspend fun createFormWithFieldsAndAudit(
+        form: ResearchFormEntity,
+        fields: List<ResearchFormFieldEntity>,
+        event: AuditEventEntity
+    ) {
+        insertForm(form)
+        if (fields.isNotEmpty()) insertFormFields(fields)
+        appendAuditEvent(event)
+    }
+
+    @Transaction
     suspend fun createParameterWithAudit(parameter: ResearchParameterEntity, event: AuditEventEntity) {
         insertParameter(parameter)
         appendAuditEvent(event)
