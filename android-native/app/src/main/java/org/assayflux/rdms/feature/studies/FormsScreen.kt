@@ -35,7 +35,6 @@ import org.assayflux.rdms.data.AuditEventEntity
 import org.assayflux.rdms.data.LocalDatabaseFactory
 import org.assayflux.rdms.data.ResearchFormEntity
 import org.assayflux.rdms.data.ResearchFormFieldEntity
-import org.assayflux.rdms.data.ResearchParameterEntity
 import java.util.UUID
 
 private data class FormFieldDraft(
@@ -77,7 +76,6 @@ fun FormsScreen() {
             ?: flowOf(emptyList<ResearchFormEntity>())
     }
     val forms by formsFlow.collectAsState(initial = emptyList())
-    val fieldsByForm = remember(forms) { forms.associate { it.id to it.title } }
 
     Column(
         Modifier.fillMaxSize().padding(16.dp),
@@ -198,8 +196,9 @@ fun FormsScreen() {
                                         position = index
                                     )
                                 }
-                                domainDao.createFormWithFields(form, fields)
-                                domainDao.appendAuditEvent(
+                                domainDao.createFormWithFieldsAndAudit(
+                                    form,
+                                    fields,
                                     AuditEventEntity(
                                         id = UUID.randomUUID().toString(),
                                         actorId = "local-user",
