@@ -25,4 +25,13 @@ interface RdmsDao {
 
     @Query("SELECT COUNT(*) FROM studies")
     suspend fun studyCount(): Int
+
+    @Query("SELECT COUNT(*) FROM participants WHERE studyId = :studyId")
+    suspend fun participantCount(studyId: String): Int
+
+    @Query("UPDATE studies SET title = :title, description = :description, status = :status, updatedAtEpochMillis = :updatedAt WHERE id = :studyId")
+    suspend fun updateStudy(studyId: String, title: String, description: String, status: String, updatedAt: Long)
+
+    @Query("SELECT * FROM studies WHERE id = :studyId LIMIT 1")
+    suspend fun getStudy(studyId: String): StudyEntity?
 }
