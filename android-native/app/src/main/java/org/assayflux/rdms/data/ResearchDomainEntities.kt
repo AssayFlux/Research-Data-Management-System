@@ -68,7 +68,7 @@ data class ResearchFormFieldEntity(
         ForeignKey(entity = StudyEntity::class, parentColumns = ["id"], childColumns = ["studyId"], onDelete = ForeignKey.CASCADE),
         ForeignKey(entity = ParticipantEntity::class, parentColumns = ["id"], childColumns = ["participantId"], onDelete = ForeignKey.CASCADE)
     ],
-    indices = [Index("studyId"), Index("participantId"), Index(value = ["studyId", "visitCode"], unique = true)]
+    indices = [Index("studyId"), Index("participantId"), Index(value = ["studyId", "participantId", "visitCode"], unique = true)]
 )
 data class ResearchVisitEntity(
     @PrimaryKey val id: String,
