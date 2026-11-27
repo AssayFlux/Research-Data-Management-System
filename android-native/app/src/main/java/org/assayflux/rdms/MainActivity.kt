@@ -17,12 +17,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import org.assayflux.rdms.security.LocalAuth
+import org.assayflux.rdms.ui.RdmsApp
+import org.assayflux.rdms.ui.RdmsTheme
 
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
-        setContent { RdmsBetaShell() }
+        setContent { RdmsTheme { RdmsBetaShell() } }
     }
 }
 
@@ -51,9 +53,7 @@ private fun RdmsBetaShell() {
                         }
                     }) { Text("Unlock with biometrics / device credential") }
                 } else {
-                    Text("Offline research workspace", style = MaterialTheme.typography.titleLarge)
-                    Text("Local storage and core study entities are under development.")
-                    Text("Do not store production research data in this beta build.")
+                    RdmsApp()
                 }
             }
         }
