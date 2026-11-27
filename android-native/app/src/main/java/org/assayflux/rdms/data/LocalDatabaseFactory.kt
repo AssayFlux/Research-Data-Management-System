@@ -48,7 +48,7 @@ object LocalDatabaseFactory {
         val factory = SupportFactory(SQLiteDatabase.getBytes(sqlCipherPassphrase))
         return Room.databaseBuilder(context, RdmsDatabase::class.java, "rdms-local.db")
             .openHelperFactory(factory)
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
     }
 }
