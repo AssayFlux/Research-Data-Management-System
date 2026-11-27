@@ -150,7 +150,7 @@ fun ResearchIntelligenceScreen() {
             }
         }
         Text(
-            "Current support: TXT, Markdown and RDMS Chrome capture text. PDF, DOCX, OCR, AI-generated briefs and multi-paper synthesis are not yet enabled.",
+            "Current support: TXT, Markdown, DOCX body text and RDMS Chrome capture text. PDF text extraction, OCR, AI-generated briefs and multi-paper synthesis are not yet enabled.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
