@@ -28,5 +28,6 @@ import androidx.room.RoomDatabase
 )
 abstract class RdmsDatabase : RoomDatabase() {
     abstract fun rdmsDao(): RdmsDao
+    abstract fun researchDomainDao(): ResearchDomainDao
     abstract fun researchIntelligenceDao(): ResearchIntelligenceDao
 }
