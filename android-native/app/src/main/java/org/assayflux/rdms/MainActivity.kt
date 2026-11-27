@@ -33,28 +33,30 @@ private fun RdmsBetaShell() {
     var unlocked by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf("Unlock to access locally stored research data.") }
     val activity = LocalContext.current as? FragmentActivity
-    MaterialTheme {
-        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        if (unlocked) {
+            RdmsApp()
+        } else {
             Column(
                 modifier = Modifier.fillMaxSize().padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text("RDMS", style = MaterialTheme.typography.headlineLarge)
-                Text("Native Android beta", style = MaterialTheme.typography.titleMedium)
-                if (!unlocked) {
-                    Text(message)
-                    Button(onClick = {
-                        if (activity == null) {
-                            message = "Authentication host is unavailable."
-                        } else if (!LocalAuth.canAuthenticate(activity)) {
-                            message = "Set up a secure device lock or biometric method in Android settings."
-                        } else {
-                            LocalAuth.prompt(activity, { unlocked = true }, { message = it })
-                        }
-                    }) { Text("Unlock with biometrics / device credential") }
-                } else {
-                    RdmsApp()
-                }
+                Text("Clinical Research Workspace", style = MaterialTheme.typography.titleMedium)
+                Text(message)
+                Button(onClick = {
+                    if (activity == null) {
+                        message = "Authentication host is unavailable."
+                    } else if (!LocalAuth.canAuthenticate(activity)) {
+                        message = "Set up a secure device lock or biometric method in Android settings."
+                    } else {
+                        LocalAuth.prompt(activity, { unlocked = true }, { message = it })
+                    }
+                }) { Text("Unlock with biometrics / device credential") }
+                Text(
+                    "This is an early beta foundation. Do not store production research data yet.",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }
