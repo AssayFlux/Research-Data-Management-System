@@ -1,38 +1,61 @@
-# RDMS Native Android — Beta
+# RDMS Native Android — Early Beta Foundation
 
-This directory is the isolated native Android implementation track. The legacy Flask/PWA application and its database remain untouched on `main`.
+This directory is an isolated native Android development track. The legacy Flask/PWA application and its database remain untouched on `main`.
 
-## Product requirements
-- Native Kotlin + Jetpack Compose; no WebView, Flask runtime, or website assets.
-- Fully offline on one Android device. No cloud, sync, telemetry, ads, or network calls.
+## Product target
+- Native Kotlin + Jetpack Compose; no WebView or embedded website.
+- Fully offline, single-device operation; no cloud, sync, telemetry, ads, or network calls.
 - No Android `INTERNET` permission.
-- Encrypted local database and private attachment storage.
-- BiometricPrompt authorization backed by Android Keystore, with a tested recovery path.
-- Encrypted export/import backups usable through Android Storage Access Framework and USB OTG.
-- Preserve existing research workflows, permissions, audit history, statistical definitions, and attachments.
+- Encrypted local database and attachment storage.
+- Android BiometricPrompt authorization; biometric templates remain under OS control.
+- Encrypted backup/import with password-based cross-device recovery and USB/SAF support.
+- Full parity with existing RDMS workflows, permissions, audit history, statistical behavior, and attachments.
 
-## Beta status
-**Scaffold only — not feature complete and not safe for production research data.** The current app module establishes a native Compose launcher and an offline-only manifest. It does not yet implement the RDMS feature set, encrypted Room/SQLCipher database initialization, biometric gate, migration, or backup/restore.
+## Current implementation status — NOT COMPLETE
+This is an early engineering foundation, **not a usable RDMS beta and not approved for real research data**.
+
+Implemented in source:
+- Native Compose launcher.
+- Initial biometric/device-credential prompt screen.
+- Secure-window flag to block screenshots/recents previews.
+- Initial Room entities/DAO for studies, participants, and audit events.
+- SQLCipher Room database factory using an Android Keystore-wrapped random database passphrase.
+- Android Keystore AES key helper and AES-GCM authenticated payload/streaming attachment primitives.
+- Explicit study access policy with deny-by-default behavior and unit tests.
+- Initial encrypted backup envelope primitive.
+- GitHub Actions workflow intended to compile the debug APK and run unit tests.
+
+Not implemented or not verified:
+- Full feature screens and workflows; most of the legacy RDMS is still absent.
+- Complete Room schema, migrations, and enforced foreign-key/authorization boundaries.
+- A biometric-bound key lifecycle, recovery credential, and safe key rotation.
+- Production-safe encrypted backup archive, password-derived cross-device key, SAF/USB export/import, and atomic restore.
+- Legacy database and attachment importer with reconciliation.
+- Statistical algorithm port and golden-reference tests.
+- Native PDF, CSV, and XLSX exports.
+- End-to-end, instrumentation, security, offline-network, and device testing.
+- Successful Gradle build and installable APK artifact.
 
 ## Build
-Open this directory in Android Studio (JDK 17, Android SDK 35) and sync Gradle. Build the debug APK with:
+Open this directory in Android Studio with JDK 17 and Android SDK 35. The intended commands are:
 
 ```bash
 gradle :app:assembleDebug
+gradle :app:testDebugUnitTest
 ```
 
-## Required implementation gates
-1. Inventory every legacy route, template, schema object, permission check, calculation, export, and file workflow.
-2. Define a versioned Room schema and encrypted database key lifecycle. Never ship a hard-coded database key.
-3. Implement biometric unlock and an independently tested recovery mechanism; biometric templates remain under Android OS control.
-4. Port every feature and statistical algorithm, with golden-reference tests against the legacy Python implementation.
-5. Build a read-only legacy data importer and validate counts, foreign keys, histories, and attachment hashes before activation.
-6. Implement authenticated encrypted backup/restore. A failed restore must leave the active database unchanged.
-7. Run unit, instrumentation, migration, offline-network, security, and device compatibility tests before calling this a release.
+A root-level GitHub Actions workflow at `.github/workflows/android-native.yml` is configured to run these commands on pushes/PRs to `android-native`. A green CI result is required before treating this scaffold as build-verified.
 
-## Data protection notes
-- Keep production data in app-private storage; exclude it from device cloud backup.
+## Security caveats
+- Do not enter real participant or research data in this build.
+- The current biometric screen is a UI gate, not yet a complete cryptographic authorization boundary. The SQLCipher key is Keystore-wrapped but not yet bound to successful biometric authentication.
+- Cross-device recovery is not available yet; a Keystore key is device-bound.
+- The backup envelope primitive is not a complete backup/restore workflow.
+- Streaming GCM decryption must read to EOF and handle authentication failures before any restored file is committed.
+- Keep production data in app-private storage; exclude it from Android cloud backup.
 - Do not log participant identifiers or research values.
-- Do not place sensitive values in QR payloads; use opaque local references.
+- QR payloads must contain opaque local references only.
 - Deny study access by default unless an explicit assignment grants it.
-- A recovery secret must be user-controlled and never embedded in source code.
+
+## Release acceptance
+See [FEATURE_PARITY_AND_RELEASE_GATES.md](docs/FEATURE_PARITY_AND_RELEASE_GATES.md). No feature is complete merely because a screen or data class exists; persistence, authorization, audit behavior, failure handling, and automated tests are required.
