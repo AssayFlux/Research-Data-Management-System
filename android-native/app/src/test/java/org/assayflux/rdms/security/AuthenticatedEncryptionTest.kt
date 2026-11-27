@@ -10,7 +10,9 @@ class AuthenticatedEncryptionTest {
 
     @Test fun roundTripPreservesPayload() {
         val source = "local research export".toByteArray()
-        assertArrayEquals(source, AuthenticatedEncryption.decrypt(AuthenticatedEncryption.encrypt(source, key()).let { it }, key()))
+        val k = key()
+        val encrypted = AuthenticatedEncryption.encrypt(source, k)
+        assertArrayEquals(source, AuthenticatedEncryption.decrypt(encrypted, k))
     }
 
     @Test fun tamperedEnvelopeIsRejected() {
