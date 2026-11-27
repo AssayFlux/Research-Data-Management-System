@@ -1,0 +1,8 @@
+:root { color-scheme: light dark; font: 14px system-ui, sans-serif; }
+body { width: 320px; margin: 0; }
+main { padding: 16px; }
+h1 { font-size: 18px; margin: 0 0 8px; }
+p { line-height: 1.45; }
+button { width: 100%; padding: 10px; border: 0; border-radius: 8px; cursor: pointer; font-weight: 600; }
+#status { min-height: 20px; }
+small { display: block; opacity: .75; }
