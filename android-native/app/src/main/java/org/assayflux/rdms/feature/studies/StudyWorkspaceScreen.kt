@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.assayflux.rdms.data.AuditEventEntity
+import org.assayflux.rdms.data.ParticipantEntity
 import org.assayflux.rdms.data.LocalDatabaseFactory
 import org.assayflux.rdms.data.ParticipantEntity
 import org.assayflux.rdms.data.StudyEntity
@@ -61,7 +62,7 @@ fun StudyWorkspaceScreen(initialSection: String = "Studies") {
     }
 
     val participantsFlow = remember(dao, selectedStudyId) {
-        selectedStudyId?.let { dao.observeParticipants(it) } ?: flowOf(emptyList())
+        selectedStudyId?.let { dao.observeParticipants(it) } ?: flowOf(emptyList<ParticipantEntity>())
     }
     val participants by participantsFlow.collectAsState(initial = emptyList())
 
