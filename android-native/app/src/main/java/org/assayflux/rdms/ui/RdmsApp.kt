@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.assayflux.rdms.feature.research.ResearchIntelligenceScreen
+import org.assayflux.rdms.feature.studies.StudyWorkspaceScreen
 
 private val RdmsTeal = Color(0xFF0F766E)
 private val RdmsInk = Color(0xFF0F172A)
@@ -186,6 +187,10 @@ fun RdmsApp() {
             } else if (selected == "Research Intelligence") {
                 Column(Modifier.padding(innerPadding)) {
                     ResearchIntelligenceScreen()
+                }
+            } else if (selected == "Studies" || selected == "Participants") {
+                Column(Modifier.padding(innerPadding)) {
+                    StudyWorkspaceScreen(initialSection = selected)
                 }
             } else {
                 DestinationContent(
