@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import org.assayflux.rdms.feature.research.ResearchIntelligenceScreen
 
 private val RdmsTeal = Color(0xFF0F766E)
 private val RdmsInk = Color(0xFF0F172A)
@@ -182,6 +183,10 @@ fun RdmsApp() {
                     modifier = Modifier.padding(innerPadding),
                     onNavigate = { selected = it }
                 )
+            } else if (selected == "Research Intelligence") {
+                Column(Modifier.padding(innerPadding)) {
+                    ResearchIntelligenceScreen()
+                }
             } else {
                 DestinationContent(
                     title = selected,
