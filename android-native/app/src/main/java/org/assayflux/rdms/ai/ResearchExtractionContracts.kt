@@ -60,6 +60,8 @@ data class ExtractedDocument(
 data class ExtractedPage(
     val pageNumber: Int?,
     val sectionHeading: String?,
+    val startOffset: Int,
+    val endOffset: Int,
     val text: String
 )
 
