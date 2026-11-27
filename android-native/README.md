@@ -36,6 +36,10 @@ Not implemented or not verified:
 - End-to-end, instrumentation, security, offline-network, and device testing.
 - Successful Gradle build and installable APK artifact.
 
+
+## Molecularis and research intelligence
+The integration direction and security/evidence rules are documented in [MOLECULARIS_INTEGRATION_AND_RESEARCH_INTELLIGENCE.md](docs/MOLECULARIS_INTEGRATION_AND_RESEARCH_INTELLIGENCE.md). Initial Kotlin contracts, Room entities, DAO and a one-page brief UI have been added for research materials. Only bounded TXT/Markdown parsing is currently implemented; PDF/DOCX extraction, OCR, an on-device AI model, multi-paper synthesis, and a browser/search connector are not complete. Do not describe these features as operational yet.
+
 ## Build
 Open this directory in Android Studio with JDK 17 and Android SDK 35. The intended commands are:
 
