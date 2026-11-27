@@ -46,6 +46,7 @@ import kotlinx.coroutines.launch
 import org.assayflux.rdms.feature.research.ResearchIntelligenceScreen
 import org.assayflux.rdms.feature.studies.StudyWorkspaceScreen
 import org.assayflux.rdms.feature.studies.ParametersScreen
+import org.assayflux.rdms.feature.studies.FormsScreen
 
 private val RdmsTeal = Color(0xFF0F766E)
 private val RdmsInk = Color(0xFF0F172A)
@@ -196,6 +197,10 @@ fun RdmsApp() {
             } else if (selected == "Parameters") {
                 Column(Modifier.padding(innerPadding)) {
                     ParametersScreen()
+                }
+            } else if (selected == "Forms") {
+                Column(Modifier.padding(innerPadding)) {
+                    FormsScreen()
                 }
             } else {
                 DestinationContent(
