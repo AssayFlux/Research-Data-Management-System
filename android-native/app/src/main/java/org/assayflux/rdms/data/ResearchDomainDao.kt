@@ -16,6 +16,15 @@ interface ResearchDomainDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertParameter(parameter: ResearchParameterEntity)
 
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun appendAuditEvent(event: AuditEventEntity)
+
+    @Transaction
+    suspend fun createParameterWithAudit(parameter: ResearchParameterEntity, event: AuditEventEntity) {
+        insertParameter(parameter)
+        appendAuditEvent(event)
+    }
+
     @Update
     suspend fun updateParameter(parameter: ResearchParameterEntity)
 
