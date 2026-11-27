@@ -10,6 +10,7 @@ import java.util.zip.ZipInputStream
 class DocxResearchExtractor(
     private val maxPackageBytes: Int = 20 * 1024 * 1024,
     private val maxDocumentXmlBytes: Int = 20 * 1024 * 1024,
+    private val maxExpandedPackageBytes: Int = 40 * 1024 * 1024,
     private val maxCharacters: Int = 10_000_000
 ) : ResearchMaterialTextExtractor {
     override val extractorId: String = "rdms.docx"
@@ -24,25 +25,33 @@ class DocxResearchExtractor(
         require(bytes.size <= maxPackageBytes) { "DOCX package exceeds configured size limit" }
 
         var documentXml: ByteArray? = null
+        var expandedTotal = 0
         ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
             while (true) {
                 val entry = zip.nextEntry ?: break
-                if (entry.name == "word/document.xml") {
+                val isDocument = entry.name == "word/document.xml"
+                if (isDocument) {
                     require(documentXml == null) { "DOCX contains duplicate document.xml entries" }
-                    val output = ByteArrayOutputStream()
-                    val buffer = ByteArray(8192)
-                    var total = 0
-                    while (true) {
-                        val count = zip.read(buffer)
-                        if (count < 0) break
-                        total += count
-                        require(total <= maxDocumentXmlBytes) {
+                }
+                val output = if (isDocument) ByteArrayOutputStream() else null
+                val buffer = ByteArray(8192)
+                var entryTotal = 0
+                while (true) {
+                    val count = zip.read(buffer)
+                    if (count < 0) break
+                    entryTotal += count
+                    expandedTotal += count
+                    require(expandedTotal <= maxExpandedPackageBytes) {
+                        "DOCX expands beyond configured package size limit"
+                    }
+                    if (isDocument) {
+                        require(entryTotal <= maxDocumentXmlBytes) {
                             "DOCX document XML exceeds configured size limit"
                         }
-                        output.write(buffer, 0, count)
+                        output!!.write(buffer, 0, count)
                     }
-                    documentXml = output.toByteArray()
                 }
+                if (isDocument) documentXml = output!!.toByteArray()
                 zip.closeEntry()
             }
         }
