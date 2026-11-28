@@ -6,12 +6,12 @@ concurrency:
 
 on:
   push:
-    branches: [android-native]
+    branches: [main, android-native, android-ui-repair]
     paths:
       - 'android-native/**'
       - '.github/workflows/android-native.yml'
   pull_request:
-    branches: [android-native]
+    branches: [main, android-native]
     paths:
       - 'android-native/**'
       - '.github/workflows/android-native.yml'
